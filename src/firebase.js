@@ -4,12 +4,12 @@ import { getStorage } from "firebase/storage";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyDyy2mlfaJSuEwZkPedP7abALF0WG-nk90",
-    authDomain: "alberto-imoveis-2025.firebaseapp.com",
-    projectId: "alberto-imoveis-2025",
-    storageBucket: "alberto-imoveis-2025.firebasestorage.app",
-    messagingSenderId: "934059138214",
-    appId: "1:934059138214:web:1e23c532302d0b72d66867"
+    apiKey: "AIzaSyBuTI1kxcmrbzo0qO5lc6WO34LR6eWZ2Xk",
+    authDomain: "alternativa-service-2025.firebaseapp.com",
+    projectId: "alternativa-service-2025",
+    storageBucket: "alternativa-service-2025.firebasestorage.app",
+    messagingSenderId: "683036588204",
+    appId: "1:683036588204:web:12e2b2f2ecc6f9658e8709"
 };
 
 const app = initializeApp(firebaseConfig);

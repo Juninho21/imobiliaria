@@ -1,5 +1,7 @@
 {
   "projects": {
     "default": "alberto-imoveis-2025"
-  }
+  },
+  "targets": {},
+  "etags": {}
 }

@@ -1,67 +1,165 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { useSettings } from '../contexts/SettingsContext';
 import ScrollReveal from 'scrollreveal';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/pagination';
 
-const AccordionItem = ({ item, isOpen, onClick }) => {
-    const contentRef = useRef(null);
+import { db } from '../firebase';
+import { collection, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
 
-    return (
-        <div className={`value__accordion-item ${isOpen ? 'accordion-open' : ''}`}>
-            <header className="value__accordion-header" onClick={onClick}>
-                <i className={`bx ${item.icon} value__accordion-icon`}></i>
-                <h3 className="value__accordion-title">
-                    {item.title}
-                </h3>
-                <div className="value__accordion-arrow">
-                    <i className='bx bxs-down-arrow'></i>
-                </div>
-            </header>
 
-            <div
-                className="value__accordion-content"
-                ref={contentRef}
-                style={{ height: isOpen ? `${contentRef.current?.scrollHeight}px` : '0px' }}
-            >
-                <p className="value__accordion-description">
-                    {item.desc}
-                </p>
-            </div>
-        </div>
-    );
-};
 
 const Home = () => {
+    const { settings, loading } = useSettings();
+    const [properties, setProperties] = useState([]);
+
+
+
+    // Gallery State
+    const [selectedProperty, setSelectedProperty] = useState(null);
+    const [galleryImages, setGalleryImages] = useState([]);
+
+    const [formData, setFormData] = useState({
+        name: '',
+        phone: '',
+        returnPreference: '',
+        message: ''
+    });
+
+    const handleChange = (e) => {
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value
+        });
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            await addDoc(collection(db, 'messages'), {
+                ...formData,
+                read: false,
+                createdAt: serverTimestamp()
+            });
+            alert('Mensagem enviada com sucesso! Entraremos em contato em breve.');
+            setFormData({ name: '', phone: '', returnPreference: '', message: '' });
+        } catch (error) {
+            console.error("Erro ao enviar mensagem: ", error);
+            alert('Erro ao enviar mensagem. Tente novamente.');
+        }
+    };
+    const [galleryLoading, setGalleryLoading] = useState(false);
+
+    // Zoom/Expanded View State
+    const [expandedIndex, setExpandedIndex] = useState(null);
+    const [allImages, setAllImages] = useState([]);
+
     useEffect(() => {
+        const unsubscribe = onSnapshot(collection(db, 'properties'), (snapshot) => {
+            const list = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            list.sort((a, b) => {
+                const dateA = a.createdAt?.seconds || 0;
+                const dateB = b.createdAt?.seconds || 0;
+                return dateB - dateA;
+            });
+            setProperties(list);
+        });
+        return () => unsubscribe();
+    }, []);
+
+    // Load gallery when a property is selected
+    useEffect(() => {
+        if (selectedProperty) {
+            setGalleryLoading(true);
+            const galleryRef = collection(db, 'properties', selectedProperty.id, 'gallery');
+            const unsubscribe = onSnapshot(galleryRef, (snapshot) => {
+                const images = snapshot.docs
+                    .map(doc => doc.data())
+                    .sort((a, b) => a.index - b.index); // Sort by index
+                setGalleryImages(images);
+                setGalleryLoading(false);
+            });
+            return () => unsubscribe();
+        } else {
+            setGalleryImages([]);
+        }
+    }, [selectedProperty]);
+
+    // Update allImages list
+    useEffect(() => {
+        if (selectedProperty) {
+            const imgs = [];
+            if (selectedProperty.imageUrl) imgs.push(selectedProperty.imageUrl);
+            galleryImages.forEach(img => imgs.push(img.imageBase64));
+            setAllImages(imgs);
+        } else {
+            setAllImages([]);
+        }
+    }, [selectedProperty, galleryImages]);
+
+
+    useEffect(() => {
+        if (loading) return;
+
         const sr = ScrollReveal({
             origin: 'top',
             distance: '60px',
             duration: 2500,
             delay: 400,
-            // reset: true
+            reset: true
         });
 
         sr.reveal(`.home__title, .popular__container, .appointment-container, .footer__container`);
         sr.reveal(`.home__description, .footer__info`, { delay: 500 });
         sr.reveal(`.home__search`, { delay: 600 });
-        sr.reveal(`.home__value`, { delay: 700 });
+
         sr.reveal(`.home__images`, { delay: 800, origin: 'bottom' });
         sr.reveal(`.logos__img`, { interval: 100 });
-        sr.reveal(`.value__images, .contact__content`, { origin: 'left' });
-        sr.reveal(`.value__content, .contact__images`, { origin: 'right' });
-    }, []);
+        sr.reveal(`.contact__content`, { origin: 'left' });
+        sr.reveal(`.contact__images`, { origin: 'right' });
+        sr.reveal(`.about__images`, { origin: 'left' });
+        sr.reveal(`.about__data`, { origin: 'right' });
+    }, [loading]);
 
-    const [activeAccordion, setActiveAccordion] = useState(null);
 
-    const toggleAccordion = (index) => {
-        if (activeAccordion === index) {
-            setActiveAccordion(null);
-        } else {
-            setActiveAccordion(index);
+
+    // Navigation Handlers
+    const handleNext = (e) => {
+        e.stopPropagation();
+        if (expandedIndex !== null && expandedIndex < allImages.length - 1) {
+            setExpandedIndex(expandedIndex + 1);
         }
     };
+
+    const handlePrev = (e) => {
+        e.stopPropagation();
+        if (expandedIndex !== null && expandedIndex > 0) {
+            setExpandedIndex(expandedIndex - 1);
+        }
+    };
+
+    // Keyboard support
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (expandedIndex !== null) {
+                if (e.key === 'ArrowRight') handleNext(e);
+                if (e.key === 'ArrowLeft') handlePrev(e);
+                if (e.key === 'Escape') setExpandedIndex(null);
+            } else if (selectedProperty) {
+                if (e.key === 'Escape') setSelectedProperty(null);
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [expandedIndex, allImages, selectedProperty]);
+
+
+    if (loading) {
+        return <div style={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Carregando...</div>;
+    }
 
     return (
         <main className="main">
@@ -69,40 +167,30 @@ const Home = () => {
             <section className="home section" id="home">
                 <div className="home__container container grid">
                     <div className="home__data">
-                        <h1 className="home__title">
-                            Descubra <br /> as melhores <br /> residências
+                        <h1 className="home__title" dangerouslySetInnerHTML={{ __html: settings?.heroTitle || 'Descubra <br /> as melhores <br /> residências' }}>
                         </h1>
                         <p className="home__description">
-                            Encontre residências que combinam com você com muita facilidade. Esqueça todas as dificuldades em encontrar uma lar ideal para você.
+                            {settings?.heroDescription || 'Encontre residências que combinam com você com muita facilidade. Esqueça todas as dificuldades em encontrar uma lar ideal para você.'}
                         </p>
+                        <a href="#appointment" className="button" style={{ marginBottom: '2rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+                            Enviar mensagem <i className='bx bx-send'></i>
+                        </a>
 
                         <div className="home__value">
-                            <div>
-                                <h1 className="home__value-number">
-                                    330mil<span>+</span>
-                                </h1>
-                                <span className="home__value-description">
-                                    Produto <br /> Premium
-                                </span>
-                            </div>
-
-                            <div>
-                                <h1 className="home__value-number">
-                                    150mil<span>+</span>
-                                </h1>
-                                <span className="home__value-description">
-                                    Para<br /> Solteiros
-                                </span>
-                            </div>
-
-                            <div>
-                                <h1 className="home__value-number">
-                                    300mil<span>+</span>
-                                </h1>
-                                <span className="home__value-description">
-                                    Ideal para<br /> Casais
-                                </span>
-                            </div>
+                            {(settings?.stats || [
+                                { number: '330mil+', label1: 'Produto', label2: 'Premium' },
+                                { number: '150mil+', label1: 'Para', label2: 'Solteiros' },
+                                { number: '300mil+', label1: 'Ideal para', label2: 'Casais' }
+                            ]).map((stat, index) => (
+                                <div key={index}>
+                                    <h1 className="home__value-number">
+                                        {stat.number.replace('+', '')}<span>+</span>
+                                    </h1>
+                                    <span className="home__value-description">
+                                        {stat.label1} <br /> {stat.label2}
+                                    </span>
+                                </div>
+                            ))}
                         </div>
                     </div>
 
@@ -110,7 +198,7 @@ const Home = () => {
                         <div className="home__orbe"></div>
 
                         <div className="home__img">
-                            <img src="/assets/images/home.jpg" alt="" />
+                            <img src={settings?.heroImage || "/assets/images/home.jpg"} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '246px 246px 16px 16px' }} />
                         </div>
                     </div>
                 </div>
@@ -119,21 +207,27 @@ const Home = () => {
             {/* LOGOS */}
             <section className="logos section" id="logos">
                 <div className="logos__container container grid">
-                    {[1, 2, 3, 4].map(num => (
-                        <div className="logos__img" key={num}>
-                            <img src={`/assets/images/logo${num}.png`} alt="Construtora Parceira" />
-                        </div>
-                    ))}
+                    {(settings?.partnerLogos && settings.partnerLogos.length > 0) ? (
+                        settings.partnerLogos.map((logo, index) => (
+                            <div className="logos__img" key={index}>
+                                <img src={logo} alt={`Parceiro ${index + 1}`} style={{ maxHeight: '50px', objectFit: 'contain' }} />
+                            </div>
+                        ))
+                    ) : (
+                        [1, 2, 3, 4].map(num => (
+                            <div className="logos__img" key={num}>
+                                <img src={`/assets/images/logo${num}.png`} alt="Construtora Parceira" />
+                            </div>
+                        ))
+                    )}
                 </div>
             </section>
 
             {/* POPULAR - Swiper */}
             <section className="popular section" id="popular">
                 <div className="container">
-                    <span className="section__subtitle">Melhor Escolha</span>
-                    <h2 className="section__title">
-                        Casas populares<span>.</span>
-                    </h2>
+                    <span className="section__subtitle">{settings?.popularSubTitle || 'Melhor Escolha'}</span>
+                    <h2 className="section__title" dangerouslySetInnerHTML={{ __html: settings?.popularTitle || 'Casas populares<span>.</span>' }}></h2>
 
                     <Swiper
                         spaceBetween={32}
@@ -149,120 +243,218 @@ const Home = () => {
                         }}
                         className="popular__container"
                     >
-                        <SwiperSlide className="popular__card">
-                            <img src="/assets/images/popular1.jpg" alt="" className="popular__img" />
-                            <div className="popular__data">
-                                <h2 className="popular__price">
-                                    <span>R$</span>250.000
-                                </h2>
-                                <h3 className="popular__title">
-                                    Apartamento 3 Qts
-                                </h3>
-                                <p className="popular__description">
-                                    Aguas Claras - Quadra 205,
-                                    Torre 2, Apto 305
-                                </p>
+                        {properties.length === 0 ? (
+                            <div style={{ textAlign: 'center', width: '100%', padding: '2rem' }}>
+                                <p>Carregando imóveis...</p>
                             </div>
-                        </SwiperSlide>
-                        <SwiperSlide className="popular__card">
-                            <img src="/assets/images/popular2.jpg" alt="" className="popular__img" />
-                            <div className="popular__data">
-                                <h2 className="popular__price">
-                                    <span>R$</span>320.000
-                                </h2>
-                                <h3 className="popular__title">
-                                    Casa 5 Suites
-                                </h3>
-                                <p className="popular__description">
-                                    Aguas Claras - Quadra 105,
-                                    Torre52, Apto 1003
-                                </p>
-                            </div>
-                        </SwiperSlide>
-                        <SwiperSlide className="popular__card">
-                            <img src="/assets/images/popular3.jpg" alt="" className="popular__img" />
-                            <div className="popular__data">
-                                <h2 className="popular__price">
-                                    <span>R$</span>1.250.000
-                                </h2>
-                                <h3 className="popular__title">
-                                    Casa 2 Quartos
-                                </h3>
-                                <p className="popular__description">
-                                    Guará,
-                                    Quadra 3
-                                </p>
-                            </div>
-                        </SwiperSlide>
-                        <SwiperSlide className="popular__card">
-                            <img src="/assets/images/popular4.jpg" alt="" className="popular__img" />
-                            <div className="popular__data">
-                                <h2 className="popular__price">
-                                    <span>R$</span>150.000
-                                </h2>
-                                <h3 className="popular__title">
-                                    Casa 3 Quartos
-                                </h3>
-                                <p className="popular__description">
-                                    Vicente Pires, Rua 1
-                                    Ch 5, Cond. Por do Sol
-                                </p>
-                            </div>
-                        </SwiperSlide>
-                        <SwiperSlide className="popular__card">
-                            <img src="/assets/images/popular5.jpg" alt="" className="popular__img" />
-                            <div className="popular__data">
-                                <h2 className="popular__price">
-                                    <span>R$</span>750.000
-                                </h2>
-                                <h3 className="popular__title">
-                                    Lote 1000m²
-                                </h3>
-                                <p className="popular__description">
-                                    ParWay, Qd 65
-                                    Cond. Solar
-                                </p>
-                            </div>
-                        </SwiperSlide>
+                        ) : (
+                            properties.map(property => (
+                                <SwiperSlide className="popular__card" key={property.id}>
+                                    <div
+                                        style={{ position: 'relative', cursor: 'pointer', overflow: 'hidden', borderRadius: '1rem' }}
+                                        onClick={() => setSelectedProperty(property)}
+                                    >
+                                        <img
+                                            src={property.imageUrl || "/assets/images/popular1.jpg"}
+                                            alt={property.title}
+                                            className="popular__img"
+                                            style={{ height: '250px', objectFit: 'cover', width: '100%' }}
+                                        />
+                                        {property.photoCount > 1 && (
+                                            <div style={{
+                                                position: 'absolute',
+                                                bottom: '10px',
+                                                right: '10px',
+                                                backgroundColor: 'rgba(0,0,0,0.6)',
+                                                color: 'white',
+                                                padding: '4px 8px',
+                                                borderRadius: '12px',
+                                                fontSize: '0.8rem',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '5px',
+                                                zIndex: 10
+                                            }}>
+                                                <i className='bx bxs-camera'></i> {property.photoCount}
+                                            </div>
+                                        )}
+                                        {property.label && (
+                                            <span style={{
+                                                position: 'absolute',
+                                                top: '10px',
+                                                left: '10px',
+                                                backgroundColor: 'var(--first-color)',
+                                                color: '#fff',
+                                                fontSize: '0.75rem',
+                                                padding: '4px 8px',
+                                                borderRadius: '4px',
+                                                zIndex: 10,
+                                                fontWeight: '600',
+                                                textTransform: 'uppercase'
+                                            }}>
+                                                {property.label}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <div className="popular__data">
+                                        <h2 className="popular__price">
+                                            <span>R$</span>{property.price}
+                                        </h2>
+                                        <h3 className="popular__title">
+                                            {property.title}
+                                        </h3>
+                                        <p className="popular__description">
+                                            {property.description}
+                                        </p>
+                                    </div>
+                                </SwiperSlide>
+                            ))
+                        )}
                     </Swiper>
                 </div>
             </section>
 
-            {/* VALUE - Accordion */}
-            <section className="value section" id="value">
-                <div className="value__container container grid">
-                    <div className="value__images">
-                        <div className="value__orbe"></div>
-                        <div className="value__img">
-                            <img src="/assets/images/value.jpg" alt="" />
+            {/* Gallery Modal */}
+            {selectedProperty && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+                    backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 9999,
+                    display: 'flex', justifyContent: 'center', alignItems: 'center'
+                }} onClick={() => setSelectedProperty(null)}>
+
+                    <div style={{
+                        width: '90%', maxWidth: '800px', maxHeight: '90vh',
+                        backgroundColor: '#fff', borderRadius: '1rem', padding: '1rem',
+                        overflowY: 'auto', position: 'relative'
+                    }} onClick={e => e.stopPropagation()}>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                            <h3 style={{ color: 'var(--title-color)' }}>{selectedProperty.title}</h3>
+                            <button onClick={() => setSelectedProperty(null)} style={{ border: 'none', background: 'none', fontSize: '1.5rem', cursor: 'pointer', color: 'var(--title-color)' }}>&times;</button>
                         </div>
-                    </div>
 
-                    <div className="value__content">
-                        <div className="value_data">
-                            <span className="section__subtitle">Nossos Valores</span>
-                            <h2 className="section__title">
-                                Damos valor a você<span>.</span>
-                            </h2>
-                            <p className="value__description">
-                                Estamos sempre prontos em ajudar a encontrar o melhor lugar para sua vida.
-                            </p>
+                        {galleryLoading ? (
+                            <p>Carregando fotos...</p>
+                        ) : (
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '0.5rem' }}>
+                                {/* Capa Sempre Primeiro */}
+                                {selectedProperty.imageUrl && (
+                                    <img
+                                        src={selectedProperty.imageUrl}
+                                        style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover', borderRadius: '0.5rem', border: '2px solid var(--first-color)', cursor: 'zoom-in' }}
+                                        onClick={() => setExpandedIndex(0)}
+                                    />
+                                )}
 
-                            <div className="value__accordion">
-                                {[
-                                    { icon: 'bxs-star', title: 'Os melhores imóveis para você.', desc: 'Imóveis de qualidade em regiões privilegiadas.' },
-                                    { icon: 'bxs-bar-chart-square', title: 'Os melhores preços do mercado.', desc: 'Buscamos sempre as melhores ofertas do mercado, para que você possa encontrar seu lar com as melhores condições.' },
-                                    { icon: 'bxs-check-square', title: 'Seus dados seguros', desc: 'Garantimos sua privacidade mantendo seus dados seguros sem qualquer compartilhamento.' }
-                                ].map((item, index) => (
-                                    <AccordionItem
-                                        key={index}
-                                        item={item}
-                                        isOpen={activeAccordion === index}
-                                        onClick={() => toggleAccordion(index)}
+                                {/* Outras Fotos */}
+                                {galleryImages.map((img, idx) => (
+                                    <img
+                                        key={idx}
+                                        src={img.imageBase64}
+                                        style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover', borderRadius: '0.5rem', cursor: 'zoom-in' }}
+                                        onClick={() => setExpandedIndex(selectedProperty.imageUrl ? idx + 1 : idx)}
                                     />
                                 ))}
                             </div>
+                        )}
+                        {!galleryLoading && galleryImages.length === 0 && !selectedProperty.imageUrl && (
+                            <p>Nenhuma foto disponível.</p>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* Expanded Image Modal Overlay with Navigation */}
+            {expandedIndex !== null && allImages[expandedIndex] && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+                    backgroundColor: 'rgba(0,0,0,0.95)', zIndex: 10000,
+                    display: 'flex', justifyContent: 'center', alignItems: 'center'
+                }} onClick={() => setExpandedIndex(null)}>
+
+                    {/* Previous Button */}
+                    {expandedIndex > 0 && (
+                        <button
+                            onClick={handlePrev}
+                            style={{
+                                position: 'absolute', left: '20px', color: 'white',
+                                background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: '50%',
+                                width: '50px', height: '50px', fontSize: '2rem', cursor: 'pointer',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                zIndex: 10001
+                            }}
+                        >
+                            &#8249;
+                        </button>
+                    )}
+
+                    <img
+                        src={allImages[expandedIndex]}
+                        style={{ width: '90vw', height: '85vh', objectFit: 'contain', borderRadius: '4px', cursor: 'pointer' }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setExpandedIndex((expandedIndex + 1) % allImages.length);
+                        }}
+                    />
+
+                    {/* Next Button */}
+                    {expandedIndex < allImages.length - 1 && (
+                        <button
+                            onClick={handleNext}
+                            style={{
+                                position: 'absolute', right: '20px', color: 'white',
+                                background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: '50%',
+                                width: '50px', height: '50px', fontSize: '2rem', cursor: 'pointer',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                zIndex: 10001
+                            }}
+                        >
+                            &#8250;
+                        </button>
+                    )}
+
+                    <button
+                        onClick={() => setExpandedIndex(null)}
+                        style={{ position: 'absolute', top: '20px', right: '20px', color: 'white', background: 'none', border: 'none', fontSize: '2rem', cursor: 'pointer', zIndex: 10002 }}
+                    >
+                        &times;
+                    </button>
+
+                    <div style={{ position: 'absolute', bottom: '20px', color: 'white' }}>
+                        {expandedIndex + 1} / {allImages.length}
+                    </div>
+                </div>
+            )}
+
+
+
+
+            {/* ABOUT US (QUEM SOU) */}
+            <section className="about section" id="about">
+                <div className="about__container container grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', alignItems: 'center', gap: '3rem' }}>
+                    <div className="about__images" style={{ display: 'flex', justifyContent: 'center' }}>
+                        <div className="about__img" style={{
+                            width: '300px', height: '400px', overflow: 'hidden',
+                            borderRadius: '160px 160px 16px 16px', border: '8px solid white',
+                            boxShadow: '0 4px 16px hsla(228, 66%, 25%, .1)'
+                        }}>
+                            <img
+                                src={settings?.aboutImage || "/assets/images/home.jpg"}
+                                alt="Quem Sou"
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
                         </div>
+                    </div>
+
+                    <div className="about__data">
+                        <span className="section__subtitle">Quem Sou</span>
+                        <h2 className="section__title" style={{ marginBottom: '1.5rem' }}>
+                            {settings?.aboutTitle || 'Sua História de Sucesso'}
+                        </h2>
+                        <p className="about__description" style={{ color: 'var(--text-color)', marginBottom: '2rem', lineHeight: '1.6' }}>
+                            {settings?.aboutText || 'Conte um pouco sobre sua trajetória, experiência e como você ajuda seus clientes a realizarem seus sonhos.'}
+                        </p>
                     </div>
                 </div>
             </section>
@@ -274,18 +466,17 @@ const Home = () => {
                         <div className="contact__orbe"></div>
 
                         <div className="contact__img">
-                            <img src="/assets/images/contact.png" alt="Contato" />
+                            <img src={settings?.contactImage || "/assets/images/contact.png"} alt="Contato" style={{ borderRadius: '1rem', width: '100%', height: '100%', objectFit: 'cover' }} />
                         </div>
                     </div>
 
                     <div className="contact__content">
                         <div className="contact__data">
                             <span className="section__subtitle">Contato</span>
-                            <h2 className="section__title">
-                                Entre em contato<span>.</span>
+                            <h2 className="section__title" dangerouslySetInnerHTML={{ __html: settings?.contactTitle || 'Entre em contato<span>.</span>' }}>
                             </h2>
                             <p className="contact__description">
-                                É um problema encontrar a casa dos sonhos? Precisa de ajuda para comprar sua primeira casa? Ou precisa de uma consultoria para investir em imóveis? Entre em contato conosco.
+                                {settings?.contactDescription || 'É um problema encontrar a casa dos sonhos? Precisa de ajuda para comprar sua primeira casa? Ou precisa de uma consultoria para investir em imóveis? Entre em contato conosco.'}
                             </p>
                         </div>
 
@@ -296,10 +487,10 @@ const Home = () => {
                                     <i className='bx bxs-phone-call'></i>
                                     <div>
                                         <h3 className="contact__card-title">Telefone</h3>
-                                        <p className="contact__card-description">61-35852021</p>
+                                        <p className="contact__card-description">{settings?.contactPhone || '61-35852021'}</p>
                                     </div>
                                 </div>
-                                <a href="tel:+5561999999999">
+                                <a href={`tel:+55${(settings?.contactPhone || '61999999999').replace(/[^0-9]/g, '')}`}>
                                     <button className="contact__card-button">Ligue Agora</button>
                                 </a>
                             </div>
@@ -309,10 +500,10 @@ const Home = () => {
                                     <i className='bx bxl-whatsapp'></i>
                                     <div>
                                         <h3 className="contact__card-title">Chat</h3>
-                                        <p className="contact__card-description">61-35852021</p>
+                                        <p className="contact__card-description">{settings?.contactWhatsapp || '61-35852021'}</p>
                                     </div>
                                 </div>
-                                <a href="https://wa.me/5561999999999" target="_blank">
+                                <a href={`https://wa.me/55${(settings?.contactWhatsapp || '61999999999').replace(/[^0-9]/g, '')}`} target="_blank">
                                     <button className="contact__card-button">WhatsApp</button>
                                 </a>
                             </div>
@@ -322,10 +513,10 @@ const Home = () => {
                                     <i className='bx bxs-envelope'></i>
                                     <div>
                                         <h3 className="contact__card-title">E-mail</h3>
-                                        <p className="contact__card-description">corretor@imobiliaria.com</p>
+                                        <p className="contact__card-description" style={{ fontSize: '0.75rem' }}>{settings?.contactEmail || 'corretor@imobiliaria.com'}</p>
                                     </div>
                                 </div>
-                                <a href="mailto:jonathancosta746@gmail.com">
+                                <a href={`mailto:${settings?.contactEmail || 'jonathancosta746@gmail.com'}`}>
                                     <button className="contact__card-button">Mensagem</button>
                                 </a>
                             </div>
@@ -335,27 +526,49 @@ const Home = () => {
             </section>
 
             {/* APPOINTMENT */}
-            <section className="appointment section">
+            <section className="appointment section" id="appointment">
                 <div className="appointment-container container">
                     <div className="info">
                         <h2>Envie uma mensagem<span>.</span></h2>
                         <p>Mande uma mensagem que entraremos em contato o mais breve possivel.</p>
                     </div>
 
-                    <form action="https://formspree.io/f/xvolerzj" method="POST" className="form__appointment">
+                    <form onSubmit={handleSubmit} className="form__appointment">
                         <div className="form__group">
                             <label htmlFor="name">Nome</label>
-                            <input type="text" placeholder="Digite seu nome" name="Nome do Cliente" id="name" required />
+                            <input
+                                type="text"
+                                placeholder="Digite seu nome"
+                                name="name"
+                                id="name"
+                                value={formData.name}
+                                onChange={handleChange}
+                                required
+                            />
                         </div>
 
                         <div className="form__group">
                             <label htmlFor="phone">Telefone</label>
-                            <input type="number" placeholder="Digite seu telefone" name="Numero de Telefone" id="number" required />
+                            <input
+                                type="text"
+                                placeholder="Digite seu telefone"
+                                name="phone"
+                                id="phone"
+                                value={formData.phone}
+                                onChange={handleChange}
+                                required
+                            />
                         </div>
 
                         <div className="form__group">
-                            <label htmlFor="return">Selecione a forma de retorno</label>
-                            <select name="return" required defaultValue="">
+                            <label htmlFor="returnPreference">Selecione a forma de retorno</label>
+                            <select
+                                name="returnPreference"
+                                id="returnPreference"
+                                value={formData.returnPreference}
+                                onChange={handleChange}
+                                required
+                            >
                                 <option value="" disabled>Selecione...</option>
                                 <option value="ligação-durante-manha">Ligação durante o período da manhã</option>
                                 <option value="ligação-durante-tarde">Ligação durante o período da tarde</option>
@@ -368,7 +581,15 @@ const Home = () => {
 
                         <div className="form__group">
                             <label htmlFor="message">Mensagem</label>
-                            <textarea name="Mensagem" id="message" rows="6" placeholder="Adicione uma mensagem"></textarea>
+                            <textarea
+                                name="message"
+                                id="message"
+                                rows="6"
+                                placeholder="Adicione uma mensagem"
+                                value={formData.message}
+                                onChange={handleChange}
+                                required
+                            ></textarea>
                         </div>
                         <input type="submit" value="Enviar Mensagem" className="btn-primary" />
                     </form>
