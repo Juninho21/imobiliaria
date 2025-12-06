@@ -129,13 +129,7 @@ const Properties = () => {
 
             // Validacao
             if (imageFiles.length > 0) {
-                for (let file of imageFiles) {
-                    if (file.size > 750000) {
-                        alert(`A imagem ${file.name} é muito grande (Máx 750KB).`);
-                        setLoading(false);
-                        return;
-                    }
-                }
+
                 // Capa = Primeira Imagem
                 console.log("Redimensionando capa...");
                 coverImageUrl = await resizeImage(imageFiles[0]);
@@ -330,7 +324,7 @@ const Properties = () => {
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                        <label style={{ fontSize: '0.875rem', color: 'var(--text-color)' }}>Fotos do Imóvel (Máx 8 fotos, Máx 750KB cada)</label>
+                        <label style={{ fontSize: '0.875rem', color: 'var(--text-color)' }}>Fotos do Imóvel (Máx 8 fotos)</label>
                         <input
                             id="fileInput"
                             type="file"
