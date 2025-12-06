@@ -40,7 +40,7 @@ const Properties = () => {
             const galleryRef = collection(db, 'properties', selectedProperty.id, 'gallery');
             const unsubscribe = onSnapshot(galleryRef, (snapshot) => {
                 const images = snapshot.docs
-                    .map(doc => doc.data())
+                    .map(doc => ({ id: doc.id, ...doc.data() }))
                     .sort((a, b) => a.index - b.index); // Sort by index
                 setGalleryImages(images);
                 setGalleryLoading(false);
@@ -228,6 +228,33 @@ const Properties = () => {
         setOriginalPhotoCount(0);
         setImageFiles([]);
     }
+
+
+    const handleMoveImage = async (index, direction) => {
+        if (!selectedProperty || !galleryImages) return;
+
+        const currentImg = galleryImages[index];
+        const targetImg = galleryImages[index + direction];
+
+        if (!currentImg || !targetImg) return;
+
+        try {
+            const galleryRef = collection(db, 'properties', selectedProperty.id, 'gallery');
+            const currentDocRef = doc(galleryRef, currentImg.id);
+            const targetDocRef = doc(galleryRef, targetImg.id);
+
+            // Swap indices
+            const idx1 = currentImg.index;
+            const idx2 = targetImg.index;
+
+            await updateDoc(currentDocRef, { index: idx2 });
+            await updateDoc(targetDocRef, { index: idx1 });
+
+        } catch (error) {
+            console.error("Error reordering images:", error);
+            alert("Erro ao reordenar imagens.");
+        }
+    };
 
     // Navigation Handlers
     const handleNext = (e) => {
@@ -451,12 +478,43 @@ const Properties = () => {
 
                                 {/* Outras Fotos */}
                                 {galleryImages.map((img, idx) => (
-                                    <img
-                                        key={idx}
-                                        src={img.imageBase64}
-                                        style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover', borderRadius: '0.5rem', cursor: 'zoom-in' }}
-                                        onClick={() => setExpandedIndex(selectedProperty.imageUrl ? idx + 1 : idx)}
-                                    />
+                                    <div key={idx} style={{ position: 'relative', overflow: 'hidden', borderRadius: '0.5rem' }}>
+                                        <img
+                                            src={img.imageBase64}
+                                            style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover', cursor: 'zoom-in', display: 'block' }}
+                                            onClick={() => setExpandedIndex(selectedProperty.imageUrl ? idx + 1 : idx)}
+                                        />
+                                        <div style={{
+                                            position: 'absolute',
+                                            bottom: 0,
+                                            left: 0,
+                                            right: 0,
+                                            background: 'rgba(0,0,0,0.5)',
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            padding: '5px'
+                                        }} onClick={e => e.stopPropagation()}>
+                                            {(idx > 0) ? (
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); handleMoveImage(idx, -1); }}
+                                                    style={{ cursor: 'pointer', background: 'white', border: 'none', borderRadius: '4px', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                                    title="Mover para esquerda"
+                                                >
+                                                    &lt;
+                                                </button>
+                                            ) : <div></div>}
+
+                                            {(idx < galleryImages.length - 1) ? (
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); handleMoveImage(idx, 1); }}
+                                                    style={{ cursor: 'pointer', background: 'white', border: 'none', borderRadius: '4px', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                                    title="Mover para direita"
+                                                >
+                                                    &gt;
+                                                </button>
+                                            ) : <div></div>}
+                                        </div>
+                                    </div>
                                 ))}
                             </div>
                         )}
