@@ -503,41 +503,56 @@ const Properties = () => {
 
                                 {/* Outras Fotos */}
                                 {galleryImages.map((img, idx) => (
-                                    <div key={idx} style={{ position: 'relative', overflow: 'hidden', borderRadius: '0.5rem' }}>
+                                    <div
+                                        key={img.id || idx}
+                                        style={{
+                                            position: 'relative',
+                                            overflow: 'hidden',
+                                            borderRadius: '0.5rem',
+                                            opacity: draggedItemIndex === idx ? 0.5 : 1,
+                                            cursor: 'grab',
+                                            border: draggedItemIndex === idx ? '2px dashed #4d7df2' : 'none',
+                                            transition: 'all 0.2s'
+                                        }}
+                                        draggable
+                                        onDragStart={(e) => handleDragStart(e, idx)}
+                                        onDragOver={handleDragOver}
+                                        onDrop={(e) => handleDrop(e, idx)}
+                                    >
                                         <img
                                             src={img.imageBase64}
-                                            style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover', cursor: 'zoom-in', display: 'block' }}
-                                            onClick={() => setExpandedIndex(selectedProperty.imageUrl ? idx + 1 : idx)}
+                                            style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover', display: 'block', pointerEvents: 'none' }}
                                         />
+                                        {/* Overlay para click de zoom */}
+                                        <div
+                                            onClick={() => setExpandedIndex(selectedProperty.imageUrl ? idx + 1 : idx)}
+                                            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', cursor: 'zoom-in' }}
+                                        ></div>
+
                                         <div style={{
                                             position: 'absolute',
-                                            bottom: 0,
-                                            left: 0,
-                                            right: 0,
-                                            background: 'rgba(0,0,0,0.5)',
-                                            display: 'flex',
-                                            justifyContent: 'space-between',
-                                            padding: '5px'
-                                        }} onClick={e => e.stopPropagation()}>
-                                            {(idx > 0) ? (
-                                                <button
-                                                    onClick={(e) => { e.stopPropagation(); handleMoveImage(idx, -1); }}
-                                                    style={{ cursor: 'pointer', background: 'white', border: 'none', borderRadius: '4px', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                                                    title="Mover para esquerda"
-                                                >
-                                                    &lt;
-                                                </button>
-                                            ) : <div></div>}
-
-                                            {(idx < galleryImages.length - 1) ? (
-                                                <button
-                                                    onClick={(e) => { e.stopPropagation(); handleMoveImage(idx, 1); }}
-                                                    style={{ cursor: 'pointer', background: 'white', border: 'none', borderRadius: '4px', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                                                    title="Mover para direita"
-                                                >
-                                                    &gt;
-                                                </button>
-                                            ) : <div></div>}
+                                            top: '5px',
+                                            right: '5px',
+                                            zIndex: 10
+                                        }}>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); handleDeleteImage(img.id, img.name); }}
+                                                style={{
+                                                    cursor: 'pointer',
+                                                    background: 'rgba(255, 0, 0, 0.8)',
+                                                    color: 'white',
+                                                    border: 'none',
+                                                    borderRadius: '4px',
+                                                    width: '24px',
+                                                    height: '24px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center'
+                                                }}
+                                                title="Excluir imagem"
+                                            >
+                                                &times;
+                                            </button>
                                         </div>
                                     </div>
                                 ))}
