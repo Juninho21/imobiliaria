@@ -61,6 +61,25 @@ const Messages = () => {
                                 <i className='bx bx-trash'></i>
                             </button>
                         </div>
+
+                        <div style={{ marginTop: '1rem', borderTop: '1px solid #eee', paddingTop: '1rem' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                                <div>
+                                    <span style={{ fontSize: '0.75rem', color: '#888', display: 'block' }}>Telefone</span>
+                                    <span style={{ fontWeight: '500' }}>{msg.phone || '-'}</span>
+                                </div>
+                                <div>
+                                    <span style={{ fontSize: '0.75rem', color: '#888', display: 'block' }}>Preferência</span>
+                                    <span style={{ fontWeight: '500' }}>{msg.returnPreference || '-'}</span>
+                                </div>
+                            </div>
+                            <div>
+                                <span style={{ fontSize: '0.75rem', color: '#888', display: 'block', marginBottom: '0.25rem' }}>Mensagem</span>
+                                <p style={{ backgroundColor: '#f8f9fa', padding: '1rem', borderRadius: '0.5rem', fontSize: '0.9rem', whiteSpace: 'pre-wrap' }}>
+                                    {msg.message}
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 ))}
             </div>
