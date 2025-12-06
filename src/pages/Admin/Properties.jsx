@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../../firebase';
-import { collection, addDoc, onSnapshot, deleteDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, onSnapshot, deleteDoc, updateDoc, doc, serverTimestamp, writeBatch } from 'firebase/firestore';
 
 const Properties = () => {
     const [properties, setProperties] = useState([]);
@@ -230,29 +230,54 @@ const Properties = () => {
     }
 
 
-    const handleMoveImage = async (index, direction) => {
-        if (!selectedProperty || !galleryImages) return;
+    const [draggedItemIndex, setDraggedItemIndex] = useState(null);
 
-        const currentImg = galleryImages[index];
-        const targetImg = galleryImages[index + direction];
-
-        if (!currentImg || !targetImg) return;
+    const handleDeleteImage = async (imageId, imageName) => {
+        if (!window.confirm(`Excluir a imagem ${imageName || 'selecionada'}?`)) return;
 
         try {
-            const galleryRef = collection(db, 'properties', selectedProperty.id, 'gallery');
-            const currentDocRef = doc(galleryRef, currentImg.id);
-            const targetDocRef = doc(galleryRef, targetImg.id);
-
-            // Swap indices
-            const idx1 = currentImg.index;
-            const idx2 = targetImg.index;
-
-            await updateDoc(currentDocRef, { index: idx2 });
-            await updateDoc(targetDocRef, { index: idx1 });
-
+            // Delete from Firestore
+            const docRef = doc(db, 'properties', selectedProperty.id, 'gallery', imageId);
+            await deleteDoc(docRef);
         } catch (error) {
-            console.error("Error reordering images:", error);
-            alert("Erro ao reordenar imagens.");
+            console.error("Erro ao deletar imagem:", error);
+            alert("Erro ao deletar imagem.");
+        }
+    };
+
+    const handleDragStart = (e, index) => {
+        setDraggedItemIndex(index);
+        e.dataTransfer.effectAllowed = "move";
+    };
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+    };
+
+    const handleDrop = async (e, targetIndex) => {
+        e.preventDefault();
+        if (draggedItemIndex === null || draggedItemIndex === targetIndex) return;
+
+        const newImages = [...galleryImages];
+        const [movedItem] = newImages.splice(draggedItemIndex, 1);
+        newImages.splice(targetIndex, 0, movedItem);
+
+        // Optimistic Update
+        setGalleryImages(newImages);
+        setDraggedItemIndex(null);
+
+        // Batch Update Firestore
+        try {
+            const batch = writeBatch(db);
+            newImages.forEach((img, idx) => {
+                const docRef = doc(db, 'properties', selectedProperty.id, 'gallery', img.id);
+                batch.update(docRef, { index: idx });
+            });
+            await batch.commit();
+        } catch (error) {
+            console.error("Erro ao salvar ordem:", error);
+            alert("Erro ao salvar nova ordem.");
         }
     };
 
