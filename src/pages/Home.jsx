@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useSettings } from '../contexts/SettingsContext';
-// import ScrollReveal from 'scrollreveal'; // Removed
+
 
 
 import { db } from '../firebase';
@@ -104,7 +104,7 @@ const Home = () => {
     }, [selectedProperty, galleryImages]);
 
 
-    // ScrollReveal Effect REMOVED
+
 
 
     // Navigation Handlers
