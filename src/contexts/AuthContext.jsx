@@ -49,8 +49,6 @@ export function AuthProvider({ children }) {
         currentUser,
         login,
         signup,
-        login,
-        signup,
         logout,
         loginWithGoogle
     };
