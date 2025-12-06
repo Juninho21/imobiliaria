@@ -1,76 +1,97 @@
 /*=============== Popular ===============*/
-.popular__container{
+.popular__container {
   padding: 1rem 0 5rem;
+  display: grid;
+  gap: 2rem;
+  /* Default: 1 column */
+  grid-template-columns: repeat(1, 1fr);
+  justify-content: center;
 }
 
-.popular__card{
-  width: 290px;
+.popular__card {
+  width: 100%;
+  /* Fluid width to fit grid column */
+  max-width: 320px;
+  /* Prevent getting too huge on single column */
   background-color: var(--container-color);
   padding: .5rem .5rem 1.5rem;
   border-radius: 1rem;
   margin: 0 auto;
   transition: .4s;
+  height: 100%;
+  /* Uniform height */
+  display: flex;
+  flex-direction: column;
 }
 
-.popular__img{
+.popular__img {
   border-radius: 1rem;
   margin-bottom: 1rem;
-  width: 360px;
-  height: 260px;
+  width: 100%;
+  aspect-ratio: 4/3;
+  object-fit: cover;
+  height: auto;
 }
 
-.popular__data{
+.popular__data {
   padding: 0 1rem 0 .5rem;
+  flex: 1;
+  /* Pushes footer down if we had one */
 }
 
-.popular__price{
+.popular__price {
   font-size: var(--h2-font-size);
   color: var(--text-color);
   margin-bottom: .25rem;
 }
 
-.popular__price span{
+.popular__price span {
   color: var(--second-color);
 }
 
-.popular__title{
+.popular__title {
   font-size: var(--h3-font-size);
   margin-bottom: .75rem;
 }
 
-.popular__description{
+.popular__description {
   font-size: var(--small-font-size);
-  margin-bottom: 2rem;
+  margin-bottom: 0;
 }
 
-.popular__card:hover{
+.popular__card:hover {
   box-shadow: 0 12px 16px hsla(228, 66%, 45%, .1);
 }
 
 /*=============== BREAKPOINTS ===============*/
-/* For small devices */
-
-@media screen and (max-width: 320px){ 
-
-.popular__card{
-  width: 230px;
-  padding: .5rem .5rem .75rem;
-}
+/* Small devices */
+@media screen and (min-width: 576px) {
+  .popular__container {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
-/* For large devices */
-@media screen and (min-width: 1020px) {
+/* Medium devices */
+@media screen and (min-width: 1024px) {
+  .popular .container {
+    max-width: 1024px;
+    /* Default container width */
+  }
 
-  .popular__container{
+  .popular__container {
     padding-top: 3rem;
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Large devices - 5 Columns */
+@media screen and (min-width: 1400px) {
+  .popular .container {
+    max-width: 1600px;
+    /* Widen container to fit 5 cards nicely */
   }
 
-  .popular__card{
-    width: 320px;
-    padding: .75rem .75rem 2rem;
-  }
-
-  .popular__data{
-    padding: 0 .25rem 0 .75rem;
+  .popular__container {
+    grid-template-columns: repeat(5, 1fr);
   }
 }

@@ -4,7 +4,7 @@ import { collection, addDoc, onSnapshot, deleteDoc, updateDoc, doc, serverTimest
 
 const Properties = () => {
     const [properties, setProperties] = useState([]);
-    const [formData, setFormData] = useState({ title: '', price: '', description: '', label: '' });
+    const [formData, setFormData] = useState({ title: '', price: '', description: '', label: '', labelColor: '#4d7df2' });
     const [editingId, setEditingId] = useState(null);
     const [originalPhotoCount, setOriginalPhotoCount] = useState(0); // To track count during edit
     const [imageFiles, setImageFiles] = useState([]);
@@ -193,7 +193,7 @@ const Properties = () => {
             }
 
             console.log("Sucesso!");
-            setFormData({ title: '', price: '', description: '', label: '' });
+            setFormData({ title: '', price: '', description: '', label: '', labelColor: '#4d7df2' });
             setEditingId(null);
             setOriginalPhotoCount(0);
             setImageFiles([]);
@@ -221,7 +221,8 @@ const Properties = () => {
             title: property.title,
             price: property.price,
             description: property.description,
-            label: property.label || ''
+            label: property.label || '',
+            labelColor: property.labelColor || '#4d7df2'
         });
         setOriginalPhotoCount(property.photoCount || 0);
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -229,7 +230,7 @@ const Properties = () => {
 
     const handleCancelEdit = () => {
         setEditingId(null);
-        setFormData({ title: '', price: '', description: '', label: '' });
+        setFormData({ title: '', price: '', description: '', label: '', labelColor: '#4d7df2' });
         setOriginalPhotoCount(0);
         setImageFiles([]);
     }
@@ -284,15 +285,48 @@ const Properties = () => {
                         type="text" name="title" placeholder="Título (ex: Casa 3 Quartos)" value={formData.title} onChange={handleChange} required
                         style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)', outline: 'none' }}
                     />
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', alignItems: 'start' }}>
                         <input
                             type="text" name="price" placeholder="Preço (ex: 250.000)" value={formData.price} onChange={handleChange} required
                             style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)', outline: 'none' }}
                         />
-                        <input
-                            type="text" name="label" placeholder="Etiqueta (Opcional - ex: Lançamento)" value={formData.label} onChange={handleChange}
-                            style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)', outline: 'none' }}
-                        />
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                            <input
+                                type="text" name="label" placeholder="Etiqueta (ex: Lançamento)" value={formData.label} onChange={handleChange}
+                                style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)', outline: 'none' }}
+                            />
+
+                            {/* Color Selector */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <span style={{ fontSize: '0.75rem', color: 'var(--text-color)' }}>Cor:</span>
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                    {[
+                                        '#4d7df2', // Blue
+                                        '#00C853', // Green
+                                        '#FFD600', // Yellow
+                                        '#FF3D00', // Red
+                                        '#AA00FF'  // Purple
+                                    ].map(color => (
+                                        <div
+                                            key={color}
+                                            onClick={() => setFormData({ ...formData, labelColor: color })}
+                                            style={{
+                                                width: '20px',
+                                                height: '20px',
+                                                borderRadius: '50%',
+                                                backgroundColor: color,
+                                                cursor: 'pointer',
+                                                border: '2px solid white',
+                                                boxShadow: formData.labelColor === color ? `0 0 0 2px ${color}` : '0 1px 3px rgba(0,0,0,0.1)',
+                                                transform: formData.labelColor === color ? 'scale(1.1)' : 'scale(1)',
+                                                transition: 'all 0.2s'
+                                            }}
+                                            title={color}
+                                        ></div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -355,30 +389,13 @@ const Properties = () => {
                                     <i className='bx bxs-camera'></i> {property.photoCount}
                                 </div>
                             )}
-                            {property.photoCount > 1 && (
-                                <div style={{
-                                    position: 'absolute',
-                                    bottom: '8px',
-                                    right: '8px',
-                                    backgroundColor: 'rgba(0,0,0,0.7)',
-                                    color: 'white',
-                                    padding: '4px 8px',
-                                    borderRadius: '12px',
-                                    fontSize: '0.75rem',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '4px'
-                                }}>
-                                    <i className='bx bxs-camera'></i> {property.photoCount}
-                                </div>
-                            )}
 
                             {property.label && (
                                 <span style={{
                                     position: 'absolute',
                                     top: '8px',
                                     left: '8px',
-                                    backgroundColor: 'var(--first-color)',
+                                    backgroundColor: property.labelColor || 'var(--first-color)',
                                     color: '#fff',
                                     fontSize: '0.75rem',
                                     padding: '4px 8px',

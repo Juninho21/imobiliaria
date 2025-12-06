@@ -1,10 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useSettings } from '../contexts/SettingsContext';
 import ScrollReveal from 'scrollreveal';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Pagination } from 'swiper/modules';
-import 'swiper/css';
-import 'swiper/css/pagination';
+
 
 import { db } from '../firebase';
 import { collection, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -229,27 +226,14 @@ const Home = () => {
                     <span className="section__subtitle">{settings?.popularSubTitle || 'Melhor Escolha'}</span>
                     <h2 className="section__title" dangerouslySetInnerHTML={{ __html: settings?.popularTitle || 'Casas populares<span>.</span>' }}></h2>
 
-                    <Swiper
-                        spaceBetween={32}
-                        grabCursor={true}
-                        centeredSlides={true}
-                        slidesPerView={'auto'}
-                        loop={true}
-                        pagination={{ dynamicBullets: true, clickable: true }}
-                        modules={[Pagination]}
-                        breakpoints={{
-                            600: { slidesPerView: 2, centeredSlides: false },
-                            1024: { slidesPerView: 3, centeredSlides: false },
-                        }}
-                        className="popular__container"
-                    >
+                    <div className="popular__container">
                         {properties.length === 0 ? (
                             <div style={{ textAlign: 'center', width: '100%', padding: '2rem' }}>
                                 <p>Carregando imóveis...</p>
                             </div>
                         ) : (
                             properties.map(property => (
-                                <SwiperSlide className="popular__card" key={property.id}>
+                                <div className="popular__card" key={property.id}>
                                     <div
                                         style={{ position: 'relative', cursor: 'pointer', overflow: 'hidden', borderRadius: '1rem' }}
                                         onClick={() => setSelectedProperty(property)}
@@ -283,7 +267,7 @@ const Home = () => {
                                                 position: 'absolute',
                                                 top: '10px',
                                                 left: '10px',
-                                                backgroundColor: 'var(--first-color)',
+                                                backgroundColor: property.labelColor || 'var(--first-color)',
                                                 color: '#fff',
                                                 fontSize: '0.75rem',
                                                 padding: '4px 8px',
@@ -308,10 +292,10 @@ const Home = () => {
                                             {property.description}
                                         </p>
                                     </div>
-                                </SwiperSlide>
+                                </div>
                             ))
                         )}
-                    </Swiper>
+                    </div>
                 </div>
             </section>
 
