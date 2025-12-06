@@ -188,9 +188,11 @@ const Home = () => {
 
             {/* POPULAR - Swiper */}
             <section className="popular section" id="popular">
-                <RevealOnScroll className="container">
-                    <span className="section__subtitle">{settings?.popularSubTitle || 'Melhor Escolha'}</span>
-                    <h2 className="section__title" dangerouslySetInnerHTML={{ __html: settings?.popularTitle || 'Casas populares<span>.</span>' }}></h2>
+                <div className="container">
+                    <RevealOnScroll>
+                        <span className="section__subtitle">{settings?.popularSubTitle || 'Melhor Escolha'}</span>
+                        <h2 className="section__title" dangerouslySetInnerHTML={{ __html: settings?.popularTitle || 'Casas populares<span>.</span>' }}></h2>
+                    </RevealOnScroll>
 
                     <div className="popular__container">
                         {properties.length === 0 ? (
@@ -198,8 +200,8 @@ const Home = () => {
                                 <p>Carregando imóveis...</p>
                             </div>
                         ) : (
-                            properties.map(property => (
-                                <div className="popular__card" key={property.id}>
+                            properties.map((property, index) => (
+                                <RevealOnScroll key={property.id} className="popular__card" delay={index * 100}>
                                     <div
                                         style={{ position: 'relative', cursor: 'pointer', overflow: 'hidden', borderRadius: '1rem' }}
                                         onClick={() => setSelectedProperty(property)}
@@ -258,126 +260,130 @@ const Home = () => {
                                             {property.description}
                                         </p>
                                     </div>
-                                </div>
+                                </RevealOnScroll>
                             ))
                         )}
                     </div>
-                </RevealOnScroll>
+                </div>
             </section>
 
 
 
             {/* Gallery Modal */}
-            {selectedProperty && (
-                <div style={{
-                    position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
-                    backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 9999,
-                    display: 'flex', justifyContent: 'center', alignItems: 'center'
-                }} onClick={() => setSelectedProperty(null)}>
-
+            {
+                selectedProperty && (
                     <div style={{
-                        width: '90%', maxWidth: '800px', maxHeight: '90vh',
-                        backgroundColor: '#fff', borderRadius: '1rem', padding: '1rem',
-                        overflowY: 'auto', position: 'relative'
-                    }} onClick={e => e.stopPropagation()}>
+                        position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+                        backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 9999,
+                        display: 'flex', justifyContent: 'center', alignItems: 'center'
+                    }} onClick={() => setSelectedProperty(null)}>
 
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                            <h3 style={{ color: 'var(--title-color)' }}>{selectedProperty.title}</h3>
-                            <button onClick={() => setSelectedProperty(null)} style={{ border: 'none', background: 'none', fontSize: '1.5rem', cursor: 'pointer', color: 'var(--title-color)' }}>&times;</button>
-                        </div>
+                        <div style={{
+                            width: '90%', maxWidth: '800px', maxHeight: '90vh',
+                            backgroundColor: '#fff', borderRadius: '1rem', padding: '1rem',
+                            overflowY: 'auto', position: 'relative'
+                        }} onClick={e => e.stopPropagation()}>
 
-                        {galleryLoading ? (
-                            <p>Carregando fotos...</p>
-                        ) : (
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '0.5rem' }}>
-                                {/* Capa Sempre Primeiro */}
-                                {selectedProperty.imageUrl && (
-                                    <img
-                                        src={selectedProperty.imageUrl}
-                                        style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover', borderRadius: '0.5rem', border: '2px solid var(--first-color)', cursor: 'zoom-in' }}
-                                        onClick={() => setExpandedIndex(0)}
-                                    />
-                                )}
-
-                                {/* Outras Fotos */}
-                                {galleryImages.map((img, idx) => (
-                                    <img
-                                        key={idx}
-                                        src={img.imageBase64}
-                                        style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover', borderRadius: '0.5rem', cursor: 'zoom-in' }}
-                                        onClick={() => setExpandedIndex(selectedProperty.imageUrl ? idx + 1 : idx)}
-                                    />
-                                ))}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                                <h3 style={{ color: 'var(--title-color)' }}>{selectedProperty.title}</h3>
+                                <button onClick={() => setSelectedProperty(null)} style={{ border: 'none', background: 'none', fontSize: '1.5rem', cursor: 'pointer', color: 'var(--title-color)' }}>&times;</button>
                             </div>
-                        )}
-                        {!galleryLoading && galleryImages.length === 0 && !selectedProperty.imageUrl && (
-                            <p>Nenhuma foto disponível.</p>
-                        )}
+
+                            {galleryLoading ? (
+                                <p>Carregando fotos...</p>
+                            ) : (
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '0.5rem' }}>
+                                    {/* Capa Sempre Primeiro */}
+                                    {selectedProperty.imageUrl && (
+                                        <img
+                                            src={selectedProperty.imageUrl}
+                                            style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover', borderRadius: '0.5rem', border: '2px solid var(--first-color)', cursor: 'zoom-in' }}
+                                            onClick={() => setExpandedIndex(0)}
+                                        />
+                                    )}
+
+                                    {/* Outras Fotos */}
+                                    {galleryImages.map((img, idx) => (
+                                        <img
+                                            key={idx}
+                                            src={img.imageBase64}
+                                            style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover', borderRadius: '0.5rem', cursor: 'zoom-in' }}
+                                            onClick={() => setExpandedIndex(selectedProperty.imageUrl ? idx + 1 : idx)}
+                                        />
+                                    ))}
+                                </div>
+                            )}
+                            {!galleryLoading && galleryImages.length === 0 && !selectedProperty.imageUrl && (
+                                <p>Nenhuma foto disponível.</p>
+                            )}
+                        </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Expanded Image Modal Overlay with Navigation */}
-            {expandedIndex !== null && allImages[expandedIndex] && (
-                <div style={{
-                    position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
-                    backgroundColor: 'rgba(0,0,0,0.95)', zIndex: 10000,
-                    display: 'flex', justifyContent: 'center', alignItems: 'center'
-                }} onClick={() => setExpandedIndex(null)}>
+            {
+                expandedIndex !== null && allImages[expandedIndex] && (
+                    <div style={{
+                        position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+                        backgroundColor: 'rgba(0,0,0,0.95)', zIndex: 10000,
+                        display: 'flex', justifyContent: 'center', alignItems: 'center'
+                    }} onClick={() => setExpandedIndex(null)}>
 
-                    {/* Previous Button */}
-                    {expandedIndex > 0 && (
-                        <button
-                            onClick={handlePrev}
-                            style={{
-                                position: 'absolute', left: '20px', color: 'white',
-                                background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: '50%',
-                                width: '50px', height: '50px', fontSize: '2rem', cursor: 'pointer',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                zIndex: 10001
+                        {/* Previous Button */}
+                        {expandedIndex > 0 && (
+                            <button
+                                onClick={handlePrev}
+                                style={{
+                                    position: 'absolute', left: '20px', color: 'white',
+                                    background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: '50%',
+                                    width: '50px', height: '50px', fontSize: '2rem', cursor: 'pointer',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    zIndex: 10001
+                                }}
+                            >
+                                &#8249;
+                            </button>
+                        )}
+
+                        <img
+                            src={allImages[expandedIndex]}
+                            style={{ width: '90vw', height: '85vh', objectFit: 'contain', borderRadius: '4px', cursor: 'pointer' }}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setExpandedIndex((expandedIndex + 1) % allImages.length);
                             }}
-                        >
-                            &#8249;
-                        </button>
-                    )}
+                        />
 
-                    <img
-                        src={allImages[expandedIndex]}
-                        style={{ width: '90vw', height: '85vh', objectFit: 'contain', borderRadius: '4px', cursor: 'pointer' }}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setExpandedIndex((expandedIndex + 1) % allImages.length);
-                        }}
-                    />
+                        {/* Next Button */}
+                        {expandedIndex < allImages.length - 1 && (
+                            <button
+                                onClick={handleNext}
+                                style={{
+                                    position: 'absolute', right: '20px', color: 'white',
+                                    background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: '50%',
+                                    width: '50px', height: '50px', fontSize: '2rem', cursor: 'pointer',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    zIndex: 10001
+                                }}
+                            >
+                                &#8250;
+                            </button>
+                        )}
 
-                    {/* Next Button */}
-                    {expandedIndex < allImages.length - 1 && (
                         <button
-                            onClick={handleNext}
-                            style={{
-                                position: 'absolute', right: '20px', color: 'white',
-                                background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: '50%',
-                                width: '50px', height: '50px', fontSize: '2rem', cursor: 'pointer',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                zIndex: 10001
-                            }}
+                            onClick={() => setExpandedIndex(null)}
+                            style={{ position: 'absolute', top: '20px', right: '20px', color: 'white', background: 'none', border: 'none', fontSize: '2rem', cursor: 'pointer', zIndex: 10002 }}
                         >
-                            &#8250;
+                            &times;
                         </button>
-                    )}
 
-                    <button
-                        onClick={() => setExpandedIndex(null)}
-                        style={{ position: 'absolute', top: '20px', right: '20px', color: 'white', background: 'none', border: 'none', fontSize: '2rem', cursor: 'pointer', zIndex: 10002 }}
-                    >
-                        &times;
-                    </button>
-
-                    <div style={{ position: 'absolute', bottom: '20px', color: 'white' }}>
-                        {expandedIndex + 1} / {allImages.length}
+                        <div style={{ position: 'absolute', bottom: '20px', color: 'white' }}>
+                            {expandedIndex + 1} / {allImages.length}
+                        </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
 
 
@@ -598,7 +604,7 @@ const Home = () => {
                     </Swiper>
                 </RevealOnScroll>
             </section>
-        </main>
+        </main >
 
     );
 };

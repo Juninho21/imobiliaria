@@ -5,6 +5,10 @@ const RevealOnScroll = ({ children, className = '', direction = 'up', delay = 0 
     const ref = useRef(null);
 
     useEffect(() => {
+        const isMobile = window.innerWidth < 768;
+        // Large elements on mobile need a smaller threshold to trigger
+        const threshold = isMobile ? 0.1 : 0.3;
+
         const observer = new IntersectionObserver(
             ([entry]) => {
                 if (entry.isIntersecting) {
@@ -13,7 +17,7 @@ const RevealOnScroll = ({ children, className = '', direction = 'up', delay = 0 
                 }
             },
             {
-                threshold: 0.3, // 30% visible
+                threshold: threshold,
                 rootMargin: '0px'
             }
         );
