@@ -25,6 +25,7 @@ const Settings = () => {
 
     // Partner Logos
     const [partnerLogos, setPartnerLogos] = useState([]);
+    const [logoSectionSize, setLogoSectionSize] = useState('medium');
 
     // Contact Section
     const [contactTitle, setContactTitle] = useState('');
@@ -64,6 +65,7 @@ const Settings = () => {
                 setPopularTitle(data.popularTitle || 'Casas populares');
 
                 if (data.partnerLogos) setPartnerLogos(data.partnerLogos);
+                setLogoSectionSize(data.logoSectionSize || 'medium');
 
                 setContactTitle(data.contactTitle || 'Entre em contato<span>.</span>');
                 setContactDescription(data.contactDescription || 'É um problema encontrar a casa dos sonhos? Precisa de ajuda para comprar sua primeira casa? Ou precisa de uma consultoria para investir em imóveis? Entre em contato conosco.');
@@ -82,6 +84,7 @@ const Settings = () => {
                 setAboutImage(data.aboutImage || null);
             } else {
                 setBrandName('Alberto Almeida');
+                setLogoSectionSize('medium');
                 // Defaults exist in state initialization
             }
         };
@@ -226,23 +229,22 @@ const Settings = () => {
                 popularSubTitle,
                 popularTitle,
                 partnerLogos,
+                logoSectionSize,
                 contactTitle,
                 contactDescription,
                 contactImage,
                 contactPhone,
                 contactWhatsapp,
-                contactWhatsapp,
-                contactEmail,
+                contactEmail, // Fixed duplicate contactWhatsapp key in previous version
                 footerDescription,
                 socialFacebook,
                 socialInstagram,
-                socialFacebook,
-                socialInstagram,
-                socialTiktok,
+                socialTiktok, // Fixed duplicate keys in previous version
                 aboutTitle,
                 aboutText,
                 aboutImage
             }, { merge: true });
+
             alert('Configurações salvas com sucesso!');
         } catch (error) {
             console.error("Erro ao salvar:", error);
@@ -300,6 +302,17 @@ const Settings = () => {
                     {/* Partner Logos */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                         <h3 style={{ color: 'var(--title-color)', borderBottom: '1px solid #eee', paddingBottom: '0.5rem' }}>Logos de Parceiros</h3>
+
+                        <label style={{ fontWeight: '500', color: 'var(--title-color)' }}>Tamanho da Seção</label>
+                        <select value={logoSectionSize} onChange={(e) => setLogoSectionSize(e.target.value)} style={inputStyle}>
+                            <option value="small">Pequeno</option>
+                            <option value="medium">Médio</option>
+                            <option value="large">Grande</option>
+                        </select>
+
+                        <div style={{ marginTop: '0.5rem', marginBottom: '0.5rem', fontSize: '0.85rem', color: '#e67e22', backgroundColor: '#fff3cd', padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #ffeeba' }}>
+                            <strong>Recomendação:</strong> Para uma melhor apresentação na página, utilize imagens de banner/logo com dimensões próximas a <strong>500x500 pixels</strong>.
+                        </div>
 
                         <label style={{ fontWeight: '500', color: 'var(--title-color)' }}>Adicionar Logos</label>
                         <input type="file" accept="image/*" multiple onChange={handleLogoUpload} style={inputStyle} />

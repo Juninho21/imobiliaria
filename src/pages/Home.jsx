@@ -1,10 +1,17 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useSettings } from '../contexts/SettingsContext';
-import ScrollReveal from 'scrollreveal';
+// import ScrollReveal from 'scrollreveal'; // Removed
 
 
 import { db } from '../firebase';
 import { collection, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
+
+// Swiper imports
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Autoplay } from 'swiper/modules';
+import 'swiper/css';
+import RevealOnScroll from '../components/RevealOnScroll';
+
 
 
 
@@ -97,29 +104,7 @@ const Home = () => {
     }, [selectedProperty, galleryImages]);
 
 
-    useEffect(() => {
-        if (loading) return;
-
-        const sr = ScrollReveal({
-            origin: 'top',
-            distance: '60px',
-            duration: 2500,
-            delay: 400,
-            reset: false
-        });
-
-        sr.reveal(`.home__title, .popular__container, .appointment-container, .footer__container`);
-        sr.reveal(`.home__description, .footer__info`, { delay: 500 });
-        sr.reveal(`.home__search`, { delay: 600 });
-
-        sr.reveal(`.home__images`, { delay: 800, origin: 'bottom' });
-        sr.reveal(`.logos__img`, { interval: 100 });
-        sr.reveal(`.contact__content`, { origin: 'left' });
-        sr.reveal(`.contact__images`, { origin: 'right' });
-        sr.reveal(`.about__images`, { origin: 'left' });
-        sr.reveal(`.about__data`, { origin: 'right' });
-    }, [loading]);
-
+    // ScrollReveal Effect REMOVED
 
 
     // Navigation Handlers
@@ -163,7 +148,7 @@ const Home = () => {
             {/* HOME */}
             <section className="home section" id="home">
                 <div className="home__container container grid">
-                    <div className="home__data">
+                    <RevealOnScroll className="home__data">
                         <h1 className="home__title" dangerouslySetInnerHTML={{ __html: settings?.heroTitle || 'Descubra <br /> as melhores <br /> residências' }}>
                         </h1>
                         <p className="home__description">
@@ -189,40 +174,21 @@ const Home = () => {
                                 </div>
                             ))}
                         </div>
-                    </div>
+                    </RevealOnScroll>
 
-                    <div className="home__images">
+                    <RevealOnScroll className="home__images" direction="up" delay={800}>
                         <div className="home__orbe"></div>
 
                         <div className="home__img">
                             <img src={settings?.heroImage || "/assets/images/home.jpg"} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '246px 246px 16px 16px' }} />
                         </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* LOGOS */}
-            <section className="logos section" id="logos">
-                <div className="logos__container container grid">
-                    {(settings?.partnerLogos && settings.partnerLogos.length > 0) ? (
-                        settings.partnerLogos.map((logo, index) => (
-                            <div className="logos__img" key={index}>
-                                <img src={logo} alt={`Parceiro ${index + 1}`} style={{ maxHeight: '50px', objectFit: 'contain' }} />
-                            </div>
-                        ))
-                    ) : (
-                        [1, 2, 3, 4].map(num => (
-                            <div className="logos__img" key={num}>
-                                <img src={`/assets/images/logo${num}.png`} alt="Construtora Parceira" />
-                            </div>
-                        ))
-                    )}
+                    </RevealOnScroll>
                 </div>
             </section>
 
             {/* POPULAR - Swiper */}
             <section className="popular section" id="popular">
-                <div className="container">
+                <RevealOnScroll className="container">
                     <span className="section__subtitle">{settings?.popularSubTitle || 'Melhor Escolha'}</span>
                     <h2 className="section__title" dangerouslySetInnerHTML={{ __html: settings?.popularTitle || 'Casas populares<span>.</span>' }}></h2>
 
@@ -296,8 +262,10 @@ const Home = () => {
                             ))
                         )}
                     </div>
-                </div>
+                </RevealOnScroll>
             </section>
+
+
 
             {/* Gallery Modal */}
             {selectedProperty && (
@@ -417,7 +385,7 @@ const Home = () => {
             {/* ABOUT US (QUEM SOU) */}
             <section className="about section" id="about">
                 <div className="about__container container grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', alignItems: 'center', gap: '3rem' }}>
-                    <div className="about__images" style={{ display: 'flex', justifyContent: 'center' }}>
+                    <RevealOnScroll className="about__images" style={{ display: 'flex', justifyContent: 'center' }} direction="left">
                         <div className="about__img" style={{
                             width: '300px', height: '400px', overflow: 'hidden',
                             borderRadius: '160px 160px 16px 16px', border: '8px solid white',
@@ -429,9 +397,9 @@ const Home = () => {
                                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                             />
                         </div>
-                    </div>
+                    </RevealOnScroll>
 
-                    <div className="about__data">
+                    <RevealOnScroll className="about__data" direction="right">
                         <span className="section__subtitle">Quem Sou</span>
                         <h2 className="section__title" style={{ marginBottom: '1.5rem' }}>
                             {settings?.aboutTitle || 'Sua História de Sucesso'}
@@ -439,22 +407,22 @@ const Home = () => {
                         <p className="about__description" style={{ color: 'var(--text-color)', marginBottom: '2rem', lineHeight: '1.6' }}>
                             {settings?.aboutText || 'Conte um pouco sobre sua trajetória, experiência e como você ajuda seus clientes a realizarem seus sonhos.'}
                         </p>
-                    </div>
+                    </RevealOnScroll>
                 </div>
             </section>
 
             {/* CONTACT */}
             <section className="contact section" id="contact">
                 <div className="contact__container container grid">
-                    <div className="contact__images">
+                    <RevealOnScroll className="contact__images" direction="left">
                         <div className="contact__orbe"></div>
 
                         <div className="contact__img">
                             <img src={settings?.contactImage || "/assets/images/contact.png"} alt="Contato" style={{ borderRadius: '1rem', width: '100%', height: '100%', objectFit: 'cover' }} />
                         </div>
-                    </div>
+                    </RevealOnScroll>
 
-                    <div className="contact__content">
+                    <RevealOnScroll className="contact__content" direction="right">
                         <div className="contact__data">
                             <span className="section__subtitle">Contato</span>
                             <h2 className="section__title" dangerouslySetInnerHTML={{ __html: settings?.contactTitle || 'Entre em contato<span>.</span>' }}>
@@ -505,13 +473,13 @@ const Home = () => {
                                 </a>
                             </div>
                         </div>
-                    </div>
+                    </RevealOnScroll>
                 </div>
             </section>
 
             {/* APPOINTMENT */}
             <section className="appointment section" id="appointment">
-                <div className="appointment-container container">
+                <RevealOnScroll className="appointment-container container">
                     <div className="info">
                         <h2>Envie uma mensagem<span>.</span></h2>
                         <p>Mande uma mensagem que entraremos em contato o mais breve possivel.</p>
@@ -577,9 +545,61 @@ const Home = () => {
                         </div>
                         <input type="submit" value="Enviar Mensagem" className="btn-primary" />
                     </form>
-                </div>
+                </RevealOnScroll>
+            </section>
+
+
+            {/* LOGOS */}
+            <section className="logos section" id="logos">
+                <RevealOnScroll className="logos__container container" delay={400}>
+                    <Swiper
+                        modules={[Autoplay]}
+                        spaceBetween={50}
+                        slidesPerView={2}
+                        loop={true}
+                        autoplay={{
+                            delay: 2500,
+                            disableOnInteraction: false,
+                        }}
+                        breakpoints={{
+                            576: {
+                                slidesPerView: 3,
+                            },
+                            768: {
+                                slidesPerView: 4,
+                            },
+                            1024: {
+                                slidesPerView: 5,
+                            },
+                        }}
+                        className="mySwiper"
+                    >
+                        {(() => {
+                            // Default to medium (200px)
+                            let logoHeight = '200px';
+
+                            if (settings?.logoSectionSize === 'small') logoHeight = '100px';
+                            if (settings?.logoSectionSize === 'medium') logoHeight = '200px';
+                            if (settings?.logoSectionSize === 'large') logoHeight = '300px';
+
+                            const renderLogos = (items) => items.map((logo, index) => (
+                                <SwiperSlide key={index} className="logos__img">
+                                    <img src={logo} alt={`Parceiro ${index + 1}`} style={{ height: logoHeight, objectFit: 'contain', margin: '0 auto', display: 'block' }} />
+                                </SwiperSlide>
+                            ));
+
+                            if (settings?.partnerLogos && settings.partnerLogos.length > 0) {
+                                return renderLogos(settings.partnerLogos);
+                            } else {
+                                const placeholderLogos = [1, 2, 3, 4, 1, 2, 3, 4].map(num => `/assets/images/logo${num}.png`);
+                                return renderLogos(placeholderLogos);
+                            }
+                        })()}
+                    </Swiper>
+                </RevealOnScroll>
             </section>
         </main>
+
     );
 };
 
