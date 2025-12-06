@@ -13,7 +13,7 @@ const RevealOnScroll = ({ children, className = '', direction = 'up', delay = 0 
                 }
             },
             {
-                threshold: 0.1, // 10% visible
+                threshold: 0.3, // 30% visible
                 rootMargin: '0px'
             }
         );
