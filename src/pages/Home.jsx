@@ -105,7 +105,7 @@ const Home = () => {
             distance: '60px',
             duration: 2500,
             delay: 400,
-            reset: true
+            reset: false
         });
 
         sr.reveal(`.home__title, .popular__container, .appointment-container, .footer__container`);
