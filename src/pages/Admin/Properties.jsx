@@ -138,6 +138,16 @@ const Properties = () => {
             if (editingId) {
                 // UPDATE
                 console.log("Atualizando imóvel...", editingId);
+
+                // Safety check: ensure doc exists in local list (real-time)
+                if (!properties.find(p => p.id === editingId)) {
+                    alert("Erro: Este imóvel não existe mais (pode ter sido excluído).");
+                    setLoading(false);
+                    setEditingId(null);
+                    setFormData({ title: '', price: '', description: '', label: '', labelColor: '#4d7df2' });
+                    return;
+                }
+
                 const docRef = doc(db, 'properties', editingId);
                 const updateData = { ...formData };
 
