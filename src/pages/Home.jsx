@@ -161,7 +161,7 @@ const Home = () => {
                     <RevealOnScroll className="home__data">
                         <h1 className="home__title" dangerouslySetInnerHTML={{ __html: settings?.heroTitle || 'Descubra <br /> as melhores <br /> residências' }}>
                         </h1>
-                        <p className="home__description">
+                        <p className="home__description" style={{ whiteSpace: 'pre-line' }}>
                             {settings?.heroDescription || 'Encontre residências que combinam com você com muita facilidade. Esqueça todas as dificuldades em encontrar uma lar ideal para você.'}
                         </p>
                         <a href="#appointment" className="button" style={{ marginBottom: '2rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -266,7 +266,7 @@ const Home = () => {
                                         <h3 className="popular__title">
                                             {property.title}
                                         </h3>
-                                        <p className="popular__description">
+                                        <p className="popular__description" style={{ whiteSpace: 'pre-line', textAlign: 'justify' }}>
                                             {property.description}
                                         </p>
                                     </div>
@@ -420,7 +420,7 @@ const Home = () => {
                         <h2 className="section__title" style={{ marginBottom: '1.5rem' }}>
                             {settings?.aboutTitle || 'Sua História de Sucesso'}
                         </h2>
-                        <p className="about__description" style={{ color: 'var(--text-color)', marginBottom: '2rem', lineHeight: '1.6' }}>
+                        <p className="about__description" style={{ color: 'var(--text-color)', marginBottom: '2rem', lineHeight: '1.6', whiteSpace: 'pre-line', textAlign: 'justify' }}>
                             {settings?.aboutText || 'Conte um pouco sobre sua trajetória, experiência e como você ajuda seus clientes a realizarem seus sonhos.'}
                         </p>
                     </RevealOnScroll>
@@ -443,7 +443,7 @@ const Home = () => {
                             <span className="section__subtitle">Contato</span>
                             <h2 className="section__title" dangerouslySetInnerHTML={{ __html: settings?.contactTitle || 'Entre em contato<span>.</span>' }}>
                             </h2>
-                            <p className="contact__description">
+                            <p className="contact__description" style={{ whiteSpace: 'pre-line', textAlign: 'justify' }}>
                                 {settings?.contactDescription || 'É um problema encontrar a casa dos sonhos? Precisa de ajuda para comprar sua primeira casa? Ou precisa de uma consultoria para investir em imóveis? Entre em contato conosco.'}
                             </p>
                         </div>
