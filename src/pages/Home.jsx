@@ -31,6 +31,7 @@ const Home = () => {
         returnPreference: '',
         message: ''
     });
+    const [isSubmitted, setIsSubmitted] = useState(false);
 
     const handleChange = (e) => {
         setFormData({
@@ -47,8 +48,12 @@ const Home = () => {
                 read: false,
                 createdAt: serverTimestamp()
             });
-            alert('Mensagem enviada com sucesso! Entraremos em contato em breve.');
+            // alert('Mensagem enviada com sucesso! Entraremos em contato em breve.');
+            setIsSubmitted(true);
             setFormData({ name: '', phone: '', returnPreference: '', message: '' });
+            setTimeout(() => {
+                setIsSubmitted(false);
+            }, 5000);
         } catch (error) {
             console.error("Erro ao enviar mensagem: ", error);
             alert('Erro ao enviar mensagem. Tente novamente.');
@@ -491,66 +496,84 @@ const Home = () => {
                         <p>Mande uma mensagem que entraremos em contato o mais breve possivel.</p>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="form__appointment">
-                        <div className="form__group">
-                            <label htmlFor="name">Nome</label>
-                            <input
-                                type="text"
-                                placeholder="Digite seu nome"
-                                name="name"
-                                id="name"
-                                value={formData.name}
-                                onChange={handleChange}
-                                required
-                            />
+                    {isSubmitted ? (
+                        <div className="contact__success-message" style={{
+                            backgroundColor: 'white',
+                            padding: '2rem',
+                            borderRadius: '1rem',
+                            textAlign: 'center',
+                            boxShadow: '0 4px 16px hsla(228, 66%, 25%, .1)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: '1rem'
+                        }}>
+                            <i className='bx bxs-check-circle' style={{ fontSize: '4rem', color: 'var(--first-color)' }}></i>
+                            <h3 style={{ fontSize: '1.5rem', color: 'var(--title-color)' }}>Mensagem enviada com sucesso!</h3>
+                            <p style={{ color: 'var(--text-color)' }}>Entraremos em contato em breve.</p>
                         </div>
+                    ) : (
+                        <form onSubmit={handleSubmit} className="form__appointment">
+                            <div className="form__group">
+                                <label htmlFor="name">Nome</label>
+                                <input
+                                    type="text"
+                                    placeholder="Digite seu nome"
+                                    name="name"
+                                    id="name"
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                    required
+                                />
+                            </div>
 
-                        <div className="form__group">
-                            <label htmlFor="phone">Telefone</label>
-                            <input
-                                type="text"
-                                placeholder="Digite seu telefone"
-                                name="phone"
-                                id="phone"
-                                value={formData.phone}
-                                onChange={handleChange}
-                                required
-                            />
-                        </div>
+                            <div className="form__group">
+                                <label htmlFor="phone">Telefone</label>
+                                <input
+                                    type="text"
+                                    placeholder="Digite seu telefone"
+                                    name="phone"
+                                    id="phone"
+                                    value={formData.phone}
+                                    onChange={handleChange}
+                                    required
+                                />
+                            </div>
 
-                        <div className="form__group">
-                            <label htmlFor="returnPreference">Selecione a forma de retorno</label>
-                            <select
-                                name="returnPreference"
-                                id="returnPreference"
-                                value={formData.returnPreference}
-                                onChange={handleChange}
-                                required
-                            >
-                                <option value="" disabled>Selecione...</option>
-                                <option value="ligação-durante-manha">Ligação durante o período da manhã</option>
-                                <option value="ligação-durante-tarde">Ligação durante o período da tarde</option>
-                                <option value="ligação-durante-noite">Ligação durante o período da noite</option>
-                                <option value="whatsApp">WhatsApp</option>
-                                <option value="email">E-mail</option>
-                            </select>
-                        </div>
+                            <div className="form__group">
+                                <label htmlFor="returnPreference">Selecione a forma de retorno</label>
+                                <select
+                                    name="returnPreference"
+                                    id="returnPreference"
+                                    value={formData.returnPreference}
+                                    onChange={handleChange}
+                                    required
+                                >
+                                    <option value="" disabled>Selecione...</option>
+                                    <option value="ligação-durante-manha">Ligação durante o período da manhã</option>
+                                    <option value="ligação-durante-tarde">Ligação durante o período da tarde</option>
+                                    <option value="ligação-durante-noite">Ligação durante o período da noite</option>
+                                    <option value="whatsApp">WhatsApp</option>
+                                    <option value="email">E-mail</option>
+                                </select>
+                            </div>
 
 
-                        <div className="form__group">
-                            <label htmlFor="message">Mensagem</label>
-                            <textarea
-                                name="message"
-                                id="message"
-                                rows="6"
-                                placeholder="Adicione uma mensagem"
-                                value={formData.message}
-                                onChange={handleChange}
-                                required
-                            ></textarea>
-                        </div>
-                        <input type="submit" value="Enviar Mensagem" className="btn-primary" />
-                    </form>
+                            <div className="form__group">
+                                <label htmlFor="message">Mensagem</label>
+                                <textarea
+                                    name="message"
+                                    id="message"
+                                    rows="6"
+                                    placeholder="Adicione uma mensagem"
+                                    value={formData.message}
+                                    onChange={handleChange}
+                                    required
+                                ></textarea>
+                            </div>
+                            <input type="submit" value="Enviar Mensagem" className="btn-primary" />
+                        </form>
+                    )}
                 </RevealOnScroll>
             </section>
 
