@@ -10,14 +10,8 @@
 
 .logos__img img {
   height: auto;
-  opacity: .3;
-  transition: .7s;
   display: block;
   margin: 0 auto;
-}
-
-.logos__img img:hover {
-  opacity: .9;
 }
 
 /*=============== BREAKPOINTS ===============*/

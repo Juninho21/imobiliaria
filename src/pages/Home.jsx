@@ -261,11 +261,16 @@ const Home = () => {
 
                                     <div className="popular__data">
                                         <h2 className="popular__price">
-                                            <span>R$</span>{property.price}
+                                            {!property.hidePrice && <><span>R$</span>{property.price}</>}
                                         </h2>
                                         <h3 className="popular__title">
                                             {property.title}
                                         </h3>
+                                        {property.code && (
+                                            <span style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.5rem', display: 'block' }}>
+                                                Cód: {property.code}
+                                            </span>
+                                        )}
                                         <p className="popular__description" style={{ whiteSpace: 'pre-line', textAlign: 'justify' }}>
                                             {property.description}
                                         </p>
@@ -295,7 +300,10 @@ const Home = () => {
                         }} onClick={e => e.stopPropagation()}>
 
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                                <h3 style={{ color: 'var(--title-color)' }}>{selectedProperty.title}</h3>
+                                <div>
+                                    <h3 style={{ color: 'var(--title-color)' }}>{selectedProperty.title}</h3>
+                                    {selectedProperty.code && <span style={{ fontSize: '0.9rem', color: '#666' }}>Cód: {selectedProperty.code}</span>}
+                                </div>
                                 <button onClick={() => setSelectedProperty(null)} style={{ border: 'none', background: 'none', fontSize: '1.5rem', cursor: 'pointer', color: 'var(--title-color)' }}>&times;</button>
                             </div>
 
