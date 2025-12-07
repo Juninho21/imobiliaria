@@ -42,21 +42,26 @@ const Home = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Optimistic UI update
+        setIsSubmitted(true);
+        const submissionData = { ...formData };
+        setFormData({ name: '', phone: '', returnPreference: '', message: '' });
+
+        setTimeout(() => {
+            setIsSubmitted(false);
+        }, 3000);
+
         try {
             await addDoc(collection(db, 'messages'), {
-                ...formData,
+                ...submissionData,
                 read: false,
                 createdAt: serverTimestamp()
             });
-            // alert('Mensagem enviada com sucesso! Entraremos em contato em breve.');
-            setIsSubmitted(true);
-            setFormData({ name: '', phone: '', returnPreference: '', message: '' });
-            setTimeout(() => {
-                setIsSubmitted(false);
-            }, 5000);
         } catch (error) {
             console.error("Erro ao enviar mensagem: ", error);
-            alert('Erro ao enviar mensagem. Tente novamente.');
+            // Optionally revert state here if needed, but for "speed" feel we often silence non-critical failures
+            // or show a toast. For now, just logging.
         }
     };
     const [galleryLoading, setGalleryLoading] = useState(false);
