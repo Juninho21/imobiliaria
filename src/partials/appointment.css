@@ -37,3 +37,15 @@
   appearance: none;
   border: none;
 }
+
+.form__appointment input[type="submit"] {
+  background: var(--first-color);
+  color: #fff;
+  cursor: pointer;
+  font-weight: var(--font-medium);
+  transition: .3s;
+}
+
+.form__appointment input[type="submit"]:hover {
+  background: var(--first-color-alt);
+}
