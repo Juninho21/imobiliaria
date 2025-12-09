@@ -154,8 +154,12 @@ const Home = () => {
         if (properties.length > 0) {
             const hash = window.location.hash;
             if (hash) {
-                setTimeout(() => {
-                    const element = document.querySelector(hash);
+                // Função para tentar fazer o scroll
+                const tryScroll = (attempts = 0) => {
+                    // Remove o # e escapa caracteres especiais do CSS
+                    const id = hash.substring(1);
+                    const element = document.getElementById(id);
+
                     if (element) {
                         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         // Adiciona um efeito visual temporário
@@ -166,8 +170,14 @@ const Home = () => {
                             element.style.transform = 'scale(1)';
                             element.style.boxShadow = '';
                         }, 1000);
+                    } else if (attempts < 5) {
+                        // Tentar novamente após um delay maior
+                        setTimeout(() => tryScroll(attempts + 1), 500);
                     }
-                }, 500);
+                };
+
+                // Aguarda a renderização inicial
+                setTimeout(() => tryScroll(), 1000);
             }
         }
     }, [properties]);

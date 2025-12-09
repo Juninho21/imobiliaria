@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-const RevealOnScroll = ({ children, className = '', direction = 'up', delay = 0 }) => {
+const RevealOnScroll = ({ children, className = '', direction = 'up', delay = 0, ...otherProps }) => {
     const [isVisible, setIsVisible] = useState(false);
     const ref = useRef(null);
 
@@ -58,6 +58,7 @@ const RevealOnScroll = ({ children, className = '', direction = 'up', delay = 0 
             ref={ref}
             className={className}
             style={style}
+            {...otherProps}
         >
             {children}
         </div>
