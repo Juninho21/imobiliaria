@@ -227,6 +227,29 @@ const Properties = () => {
         setImageFiles([]);
     }
 
+    const handleShareWhatsApp = (property) => {
+        // URL do site (ajuste conforme necessário)
+        const siteUrl = window.location.origin;
+        const propertyUrl = `${siteUrl}/#property-${property.id}`;
+
+        // Monta a mensagem
+        const message = `
+🏡 *${property.title}*
+
+💰 Valor: R$ ${property.price}
+
+📝 ${property.description}
+
+🔗 Veja mais detalhes: ${propertyUrl}
+        `.trim();
+
+        // Codifica a mensagem para URL
+        const encodedMessage = encodeURIComponent(message);
+
+        // Abre o WhatsApp Web com a mensagem
+        window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
+    };
+
     // --- DRAG AND DROP & DELETE (Unified) ---
     const [draggedItemIndex, setDraggedItemIndex] = useState(null);
 
@@ -432,6 +455,13 @@ const Properties = () => {
                         <h4 style={{ color: 'var(--title-color)' }}>{property.title}</h4>
                         <span style={{ color: 'var(--first-color)', fontWeight: '600' }}>R$ {property.price}</span>
                         <div style={{ display: 'flex', gap: '0.5rem', marginTop: 'auto', alignSelf: 'flex-end' }}>
+                            <button
+                                onClick={() => handleShareWhatsApp(property)}
+                                style={{ color: '#25D366', border: 'none', background: 'none', cursor: 'pointer' }}
+                                title="Compartilhar no WhatsApp"
+                            >
+                                <i className='bx bxl-whatsapp' style={{ fontSize: '1.25rem' }}></i>
+                            </button>
                             <button onClick={() => handleEdit(property)} style={{ color: 'var(--first-color)', border: 'none', background: 'none', cursor: 'pointer' }}><i className='bx bx-edit' style={{ fontSize: '1.25rem' }}></i></button>
                             <button onClick={() => handleDelete(property.id)} style={{ color: 'red', border: 'none', background: 'none', cursor: 'pointer' }}><i className='bx bx-trash' style={{ fontSize: '1.25rem' }}></i></button>
                         </div>

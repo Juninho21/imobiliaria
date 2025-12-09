@@ -32,6 +32,7 @@ const Home = () => {
         message: ''
     });
     const [isSubmitted, setIsSubmitted] = useState(false);
+    const [expandedCards, setExpandedCards] = useState({});
 
     const handleChange = (e) => {
         setFormData({
@@ -210,68 +211,115 @@ const Home = () => {
                                 <p>Carregando imóveis...</p>
                             </div>
                         ) : (
-                            properties.map((property, index) => (
-                                <RevealOnScroll key={property.id} className="popular__card" delay={index * 100}>
-                                    <div
-                                        style={{ position: 'relative', cursor: 'pointer', overflow: 'hidden', borderRadius: '1rem' }}
-                                        onClick={() => setSelectedProperty(property)}
-                                    >
-                                        <img
-                                            src={property.imageUrl || "/assets/images/popular1.jpg"}
-                                            alt={property.title}
-                                            className="popular__img"
-                                            style={{ height: '250px', objectFit: 'cover', width: '100%' }}
-                                        />
-                                        {property.photoCount > 1 && (
-                                            <div style={{
-                                                position: 'absolute',
-                                                bottom: '10px',
-                                                right: '10px',
-                                                backgroundColor: 'rgba(0,0,0,0.6)',
-                                                color: 'white',
-                                                padding: '4px 8px',
-                                                borderRadius: '12px',
-                                                fontSize: '0.8rem',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '5px',
-                                                zIndex: 10
-                                            }}>
-                                                <i className='bx bxs-camera'></i> {property.photoCount}
-                                            </div>
-                                        )}
-                                        {property.label && (
-                                            <span style={{
-                                                position: 'absolute',
-                                                top: '10px',
-                                                left: '10px',
-                                                backgroundColor: property.labelColor || 'var(--first-color)',
-                                                color: '#fff',
-                                                fontSize: '0.75rem',
-                                                padding: '4px 8px',
-                                                borderRadius: '4px',
-                                                zIndex: 10,
-                                                fontWeight: '600',
-                                                textTransform: 'uppercase'
-                                            }}>
-                                                {property.label}
-                                            </span>
-                                        )}
-                                    </div>
+                            properties.map((property, index) => {
+                                const isExpanded = expandedCards[property.id];
+                                const descriptionLength = property.description?.length || 0;
+                                const shouldTruncate = descriptionLength > 150;
+                                const displayDescription = shouldTruncate && !isExpanded
+                                    ? property.description.substring(0, 150) + '...'
+                                    : property.description;
 
-                                    <div className="popular__data">
-                                        <h2 className="popular__price">
-                                            <span>R$</span>{property.price}
-                                        </h2>
-                                        <h3 className="popular__title">
-                                            {property.title}
-                                        </h3>
-                                        <p className="popular__description" style={{ whiteSpace: 'pre-line', textAlign: 'justify' }}>
-                                            {property.description}
-                                        </p>
-                                    </div>
-                                </RevealOnScroll>
-                            ))
+                                const toggleExpand = (e) => {
+                                    e.stopPropagation();
+                                    setExpandedCards(prev => ({
+                                        ...prev,
+                                        [property.id]: !prev[property.id]
+                                    }));
+                                };
+
+                                return (
+                                    <RevealOnScroll key={property.id} className="popular__card" delay={index * 100}>
+                                        <div
+                                            style={{ position: 'relative', cursor: 'pointer', overflow: 'hidden', borderRadius: '1rem' }}
+                                            onClick={() => setSelectedProperty(property)}
+                                        >
+                                            <img
+                                                src={property.imageUrl || "/assets/images/popular1.jpg"}
+                                                alt={property.title}
+                                                className="popular__img"
+                                                style={{ height: '250px', objectFit: 'cover', width: '100%' }}
+                                            />
+                                            {property.photoCount > 1 && (
+                                                <div style={{
+                                                    position: 'absolute',
+                                                    bottom: '10px',
+                                                    right: '10px',
+                                                    backgroundColor: 'rgba(0,0,0,0.6)',
+                                                    color: 'white',
+                                                    padding: '4px 8px',
+                                                    borderRadius: '12px',
+                                                    fontSize: '0.8rem',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '5px',
+                                                    zIndex: 10
+                                                }}>
+                                                    <i className='bx bxs-camera'></i> {property.photoCount}
+                                                </div>
+                                            )}
+                                            {property.label && (
+                                                <span style={{
+                                                    position: 'absolute',
+                                                    top: '10px',
+                                                    left: '10px',
+                                                    backgroundColor: property.labelColor || 'var(--first-color)',
+                                                    color: '#fff',
+                                                    fontSize: '0.75rem',
+                                                    padding: '4px 8px',
+                                                    borderRadius: '4px',
+                                                    zIndex: 10,
+                                                    fontWeight: '600',
+                                                    textTransform: 'uppercase'
+                                                }}>
+                                                    {property.label}
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        <div className="popular__data">
+                                            <h2 className="popular__price">
+                                                <span>R$</span>{property.price}
+                                            </h2>
+                                            <h3 className="popular__title">
+                                                {property.title}
+                                            </h3>
+                                            <p className="popular__description" style={{ whiteSpace: 'pre-line', textAlign: 'justify', marginBottom: shouldTruncate ? '0.5rem' : '0' }}>
+                                                {displayDescription}
+                                            </p>
+                                            {shouldTruncate && (
+                                                <button
+                                                    onClick={toggleExpand}
+                                                    style={{
+                                                        background: 'none',
+                                                        border: 'none',
+                                                        color: 'var(--first-color)',
+                                                        cursor: 'pointer',
+                                                        fontSize: '0.875rem',
+                                                        fontWeight: '500',
+                                                        padding: '0.25rem 0',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '0.25rem',
+                                                        transition: 'opacity 0.3s'
+                                                    }}
+                                                    onMouseEnter={(e) => e.currentTarget.style.opacity = '0.7'}
+                                                    onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                                                >
+                                                    {isExpanded ? (
+                                                        <>
+                                                            Ver menos <i className='bx bx-chevron-up'></i>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            Ver mais <i className='bx bx-chevron-down'></i>
+                                                        </>
+                                                    )}
+                                                </button>
+                                            )}
+                                        </div>
+                                    </RevealOnScroll>
+                                );
+                            })
                         )}
                     </div>
                 </div>
