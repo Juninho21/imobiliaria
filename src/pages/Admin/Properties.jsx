@@ -246,19 +246,26 @@ const Properties = () => {
     }
 
     const handleShareWhatsApp = (property) => {
-        // URL do site (ajuste conforme necessário)
+        // URL do site usando o código de referência
         const siteUrl = window.location.origin;
-        const propertyUrl = `${siteUrl}/#property-${property.id}`;
+        const propertyCode = property.code || property.id;
+        const propertyUrl = `${siteUrl}/#ref-${propertyCode}`;
 
-        // Monta a mensagem
+        // Monta a mensagem com informações formatadas
+        const priceText = property.hidePrice ? 'Consulte-nos' : `R$ ${property.price}`;
+
         const message = `
 🏡 *${property.title}*
+${property.code ? `📋 Ref: ${property.code}` : ''}
 
-💰 Valor: R$ ${property.price}
+💰 Valor: ${priceText}
 
 📝 ${property.description}
 
-🔗 Veja mais detalhes: ${propertyUrl}
+🔗 *Ver fotos e mais detalhes:*
+${propertyUrl}
+
+📸 Clique no link acima para ver todas as fotos do imóvel!
         `.trim();
 
         // Codifica a mensagem para URL

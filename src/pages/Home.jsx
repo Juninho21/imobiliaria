@@ -133,6 +133,7 @@ const Home = () => {
         }
     };
 
+
     // Keyboard support
     useEffect(() => {
         const handleKeyDown = (e) => {
@@ -146,8 +147,31 @@ const Home = () => {
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
     }, [expandedIndex, allImages, selectedProperty]);
+
+    // Auto-scroll para o imóvel quando há uma âncora na URL
+    useEffect(() => {
+        if (properties.length > 0) {
+            const hash = window.location.hash;
+            if (hash) {
+                setTimeout(() => {
+                    const element = document.querySelector(hash);
+                    if (element) {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        // Adiciona um efeito visual temporário
+                        element.style.transition = 'all 0.3s';
+                        element.style.transform = 'scale(1.02)';
+                        element.style.boxShadow = '0 8px 32px hsla(228, 66%, 45%, .3)';
+                        setTimeout(() => {
+                            element.style.transform = 'scale(1)';
+                            element.style.boxShadow = '';
+                        }, 1000);
+                    }
+                }, 500);
+            }
+        }
+    }, [properties]);
+
 
 
     if (loading) {
@@ -229,7 +253,12 @@ const Home = () => {
                                 };
 
                                 return (
-                                    <RevealOnScroll key={property.id} className="popular__card" delay={index * 100}>
+                                    <RevealOnScroll
+                                        key={property.id}
+                                        className="popular__card"
+                                        delay={index * 100}
+                                        id={`ref-${property.code || property.id}`}
+                                    >
                                         <div
                                             style={{ position: 'relative', cursor: 'pointer', overflow: 'hidden', borderRadius: '1rem' }}
                                             onClick={() => setSelectedProperty(property)}
