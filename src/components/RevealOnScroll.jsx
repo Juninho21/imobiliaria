@@ -1,10 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-const RevealOnScroll = ({ children, className = '', direction = 'up', delay = 0, ...otherProps }) => {
-    const [isVisible, setIsVisible] = useState(false);
+const RevealOnScroll = ({ children, className = '', direction = 'up', delay = 0, revealed = false, onReveal, ...otherProps }) => {
+    const [isVisible, setIsVisible] = useState(revealed);
     const ref = useRef(null);
 
     useEffect(() => {
+        // If already revealed (via prop), don't observe
+        if (revealed) {
+            setIsVisible(true);
+            return;
+        }
+
         const isMobile = window.innerWidth < 768;
         // Large elements on mobile need a smaller threshold to trigger
         const threshold = isMobile ? 0.1 : 0.3;
@@ -13,6 +19,7 @@ const RevealOnScroll = ({ children, className = '', direction = 'up', delay = 0,
             ([entry]) => {
                 if (entry.isIntersecting) {
                     setIsVisible(true);
+                    if (onReveal) onReveal();
                     observer.unobserve(entry.target); // Trigger once
                 }
             },
@@ -31,7 +38,7 @@ const RevealOnScroll = ({ children, className = '', direction = 'up', delay = 0,
                 observer.unobserve(ref.current);
             }
         };
-    }, []);
+    }, [revealed, onReveal]);
 
     const getTransform = (dir) => {
         switch (dir) {

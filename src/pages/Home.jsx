@@ -228,10 +228,11 @@ const Home = () => {
 
     // Extract valid numeric prices for the dropdowns
     const availablePrices = [...new Set(properties.map(p => parsePrice(p.price)).filter(p => p > 0))].sort((a, b) => a - b);
-
     const formatCurrency = (value) => {
         return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     };
+
+
 
     if (loading) {
         return <div style={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Carregando...</div>;
@@ -360,10 +361,9 @@ const Home = () => {
                                 };
 
                                 return (
-                                    <RevealOnScroll
+                                    <div
                                         key={property.id}
                                         className="popular__card"
-                                        delay={index * 100}
                                         id={`ref-${property.code || property.id}`}
                                     >
                                         <div
@@ -459,7 +459,8 @@ const Home = () => {
                                                 </button>
                                             )}
                                         </div>
-                                    </RevealOnScroll>
+                                    </div>
+
                                 );
                             })
                         )}
