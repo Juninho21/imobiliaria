@@ -4,7 +4,7 @@ import { collection, addDoc, onSnapshot, deleteDoc, updateDoc, doc, serverTimest
 
 const Properties = () => {
     const [properties, setProperties] = useState([]);
-    const [formData, setFormData] = useState({ title: '', price: '', description: '', label: '', labelColor: '#4d7df2', code: '', hidePrice: false });
+    const [formData, setFormData] = useState({ title: '', price: '', city: '', description: '', label: '', labelColor: '#4d7df2', code: '', hidePrice: false });
     const [editingId, setEditingId] = useState(null);
     const [originalPhotoCount, setOriginalPhotoCount] = useState(0);
     const [imageFiles, setImageFiles] = useState([]);
@@ -202,7 +202,7 @@ const Properties = () => {
             }
 
             console.log("Sucesso!");
-            setFormData({ title: '', price: '', description: '', label: '', labelColor: '#4d7df2', code: '', hidePrice: false });
+            setFormData({ title: '', price: '', city: '', description: '', label: '', labelColor: '#4d7df2', code: '', hidePrice: false });
             setEditingId(null);
             setOriginalPhotoCount(0);
             setImageFiles([]);
@@ -228,6 +228,7 @@ const Properties = () => {
         setFormData({
             title: property.title,
             price: property.price,
+            city: property.city || '',
             description: property.description,
             label: property.label || '',
             labelColor: property.labelColor || '#4d7df2',
@@ -240,7 +241,7 @@ const Properties = () => {
 
     const handleCancelEdit = () => {
         setEditingId(null);
-        setFormData({ title: '', price: '', description: '', label: '', labelColor: '#4d7df2', code: '', hidePrice: false });
+        setFormData({ title: '', price: '', city: '', description: '', label: '', labelColor: '#4d7df2', code: '', hidePrice: false });
         setOriginalPhotoCount(0);
         setImageFiles([]);
     }
@@ -485,6 +486,9 @@ ${propertyUrl}
                         <input type="text" name="code" placeholder="Código (Gerado Auto)" value={formData.code} onChange={handleChange} style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)', backgroundColor: '#f9f9f9' }} />
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                        <input type="text" name="city" placeholder="Cidade" value={formData.city} onChange={handleChange} required style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)' }} />
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                             <input type="text" name="price" placeholder="Preço" value={formData.price} onChange={handleChange} required style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)', flex: 1 }} />
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
@@ -530,6 +534,7 @@ ${propertyUrl}
 
                             </div>
                             <h4 style={{ color: 'var(--title-color)' }}>{property.title}</h4>
+                            {property.city && <span style={{ fontSize: '0.8rem', color: '#666' }}>{property.city}</span>}
                             <span style={{ color: 'var(--first-color)', fontWeight: '600' }}>
                                 {property.hidePrice ? <span style={{ color: '#888' }}>(Oculto)</span> : `R$ ${property.price}`}
                             </span>

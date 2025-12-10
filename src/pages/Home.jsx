@@ -184,6 +184,62 @@ const Home = () => {
 
 
 
+    // Filter State
+    const [filters, setFilters] = useState({
+        city: '',
+        minPrice: '',
+        maxPrice: ''
+    });
+
+    const cities = [...new Set(properties.map(p => p.city).filter(Boolean))];
+
+    const parsePrice = (priceStr) => {
+        if (!priceStr) return 0;
+        // Remove 'R$', dots, spaces, keeping numbers and comma
+        // Example: "1.200.000,00" -> "1200000.00"
+        return parseFloat(priceStr.replace(/[^0-9,]/g, '').replace(',', '.')) || 0;
+    };
+
+    const filteredProperties = properties.filter(property => {
+        // City Filter
+        if (filters.city && property.city !== filters.city) return false;
+
+        // Price Filter
+        const price = parsePrice(property.price);
+        const min = parseFloat(filters.minPrice) || 0;
+        const max = parseFloat(filters.maxPrice) || Infinity;
+
+        // If hidden price, assume matches unless specific logic needed (or exclude?)
+        // Usually, if price is hidden, we might want to exclude from price range searches or include at end.
+        // For now, if price is hidden (and thus likely 0 or null effectively in display), let's treat it as matching if no range is set, 
+        // but if range IS set, we might need to decide. 
+        // If property.price is empty/null, price is 0.
+        if (property.hidePrice) {
+            // If user is filtering by price, maybe exclude hidden price items? 
+            // Or include them? Let's exclude if price filter is active.
+            if (min > 0 || max < Infinity) return false;
+        }
+
+        if (price < min) return false;
+        if (price > max) return false;
+
+        return true;
+    });
+
+    const handleFilterChange = (e) => {
+        setFilters({
+            ...filters,
+            [e.target.name]: e.target.value
+        });
+    };
+
+    // Extract valid numeric prices for the dropdowns
+    const availablePrices = [...new Set(properties.map(p => parsePrice(p.price)).filter(p => p > 0))].sort((a, b) => a - b);
+
+    const formatCurrency = (value) => {
+        return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    };
+
     if (loading) {
         return <div style={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Carregando...</div>;
     }
@@ -231,6 +287,70 @@ const Home = () => {
                 </div>
             </section>
 
+            {/* FILTERS SECTION */}
+            <section className="section" style={{ paddingBottom: '0' }}>
+                <div className="container">
+                    <RevealOnScroll className="home__search" style={{
+                        background: '#fff',
+                        padding: '1.5rem',
+                        borderRadius: '1rem',
+                        boxShadow: '0 4px 16px hsla(228, 66%, 45%, .1)',
+                        display: 'grid',
+                        gap: '1rem',
+                        // Responsive grid: 1 col on mobile, 3 cols on tablet+
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))'
+                    }}>
+                        {/* City Filter */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                            <label style={{ fontWeight: '500', color: 'var(--title-color)' }}>Cidade</label>
+                            <select
+                                name="city"
+                                value={filters.city}
+                                onChange={handleFilterChange}
+                                style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)', outline: 'none' }}
+                            >
+                                <option value="">Todas as Cidades</option>
+                                {cities.map(city => (
+                                    <option key={city} value={city}>{city}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Min Price */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                            <label style={{ fontWeight: '500', color: 'var(--title-color)' }}>Preço Mínimo</label>
+                            <select
+                                name="minPrice"
+                                value={filters.minPrice}
+                                onChange={handleFilterChange}
+                                style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)', outline: 'none' }}
+                            >
+                                <option value="">Qualquer</option>
+                                {availablePrices.map(price => (
+                                    <option key={price} value={price}>{formatCurrency(price)}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Max Price */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                            <label style={{ fontWeight: '500', color: 'var(--title-color)' }}>Preço Máximo</label>
+                            <select
+                                name="maxPrice"
+                                value={filters.maxPrice}
+                                onChange={handleFilterChange}
+                                style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)', outline: 'none' }}
+                            >
+                                <option value="">Qualquer</option>
+                                {availablePrices.map(price => (
+                                    <option key={price} value={price}>{formatCurrency(price)}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </RevealOnScroll>
+                </div>
+            </section>
+
             {/* POPULAR - Swiper */}
             <section className="popular section" id="popular">
                 <div className="container">
@@ -240,12 +360,12 @@ const Home = () => {
                     </RevealOnScroll>
 
                     <div className="popular__container">
-                        {properties.length === 0 ? (
+                        {filteredProperties.length === 0 ? (
                             <div style={{ textAlign: 'center', width: '100%', padding: '2rem' }}>
-                                <p>Carregando imóveis...</p>
+                                <p>Nenhum imóvel encontrado com os filtros selecionados.</p>
                             </div>
                         ) : (
-                            properties.map((property, index) => {
+                            filteredProperties.map((property, index) => {
                                 const isExpanded = expandedCards[property.id];
                                 const descriptionLength = property.description?.length || 0;
                                 const shouldTruncate = descriptionLength > 150;
