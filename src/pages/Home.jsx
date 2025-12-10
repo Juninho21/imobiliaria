@@ -187,8 +187,7 @@ const Home = () => {
     // Filter State
     const [filters, setFilters] = useState({
         city: '',
-        minPrice: '',
-        maxPrice: ''
+        price: ''
     });
 
     const cities = [...new Set(properties.map(p => p.city).filter(Boolean))];
@@ -204,26 +203,20 @@ const Home = () => {
         // City Filter
         if (filters.city && property.city !== filters.city) return false;
 
-        // Price Filter
-        const price = parsePrice(property.price);
-        const min = parseFloat(filters.minPrice) || 0;
-        const max = parseFloat(filters.maxPrice) || Infinity;
+        // Price Filter (Max Price)
+        const itemPrice = parsePrice(property.price);
+        const maxPrice = parseFloat(filters.price);
 
-        // If hidden price, assume matches unless specific logic needed (or exclude?)
-        // Usually, if price is hidden, we might want to exclude from price range searches or include at end.
-        // For now, if price is hidden (and thus likely 0 or null effectively in display), let's treat it as matching if no range is set, 
-        // but if range IS set, we might need to decide. 
-        // If property.price is empty/null, price is 0.
-        if (property.hidePrice) {
-            // If user is filtering by price, maybe exclude hidden price items? 
-            // Or include them? Let's exclude if price filter is active.
-            if (min > 0 || max < Infinity) return false;
-        }
+        if (maxPrice && itemPrice > maxPrice) return false;
 
-        if (price < min) return false;
-        if (price > max) return false;
+        // If hidden price, exclude if price filter is active
+        if (property.hidePrice && maxPrice) return false;
 
         return true;
+    }).sort((a, b) => {
+        const priceA = parsePrice(a.price);
+        const priceB = parsePrice(b.price);
+        return priceA - priceB;
     });
 
     const handleFilterChange = (e) => {
@@ -297,12 +290,12 @@ const Home = () => {
                         boxShadow: '0 4px 16px hsla(228, 66%, 45%, .1)',
                         display: 'grid',
                         gap: '1rem',
-                        // Responsive grid: 1 col on mobile, 3 cols on tablet+
+                        // Responsive grid: 1 col on mobile, 2 cols on tablet+
                         gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))'
                     }}>
                         {/* City Filter */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                            <label style={{ fontWeight: '500', color: 'var(--title-color)' }}>Cidade</label>
+                            <label style={{ fontWeight: '500', color: 'var(--title-color)' }}>Escolha a cidade</label>
                             <select
                                 name="city"
                                 value={filters.city}
@@ -316,34 +309,18 @@ const Home = () => {
                             </select>
                         </div>
 
-                        {/* Min Price */}
+                        {/* Price Filter (Max) */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                            <label style={{ fontWeight: '500', color: 'var(--title-color)' }}>Preço Mínimo</label>
+                            <label style={{ fontWeight: '500', color: 'var(--title-color)' }}>Escolha o valor do imóvel</label>
                             <select
-                                name="minPrice"
-                                value={filters.minPrice}
+                                name="price"
+                                value={filters.price}
                                 onChange={handleFilterChange}
                                 style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)', outline: 'none' }}
                             >
-                                <option value="">Qualquer</option>
+                                <option value="">Qualquer valor</option>
                                 {availablePrices.map(price => (
-                                    <option key={price} value={price}>{formatCurrency(price)}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        {/* Max Price */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                            <label style={{ fontWeight: '500', color: 'var(--title-color)' }}>Preço Máximo</label>
-                            <select
-                                name="maxPrice"
-                                value={filters.maxPrice}
-                                onChange={handleFilterChange}
-                                style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)', outline: 'none' }}
-                            >
-                                <option value="">Qualquer</option>
-                                {availablePrices.map(price => (
-                                    <option key={price} value={price}>{formatCurrency(price)}</option>
+                                    <option key={price} value={price}>Até {formatCurrency(price)}</option>
                                 ))}
                             </select>
                         </div>
